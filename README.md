@@ -4,11 +4,16 @@ Collect messages from lots of people and print them together as one scrapbook.
 
 Each person's message (a name, the text, and optionally a photo) gets a printable page of its own. You pick a page design and a paper size, and the tool makes a cover followed by one page per person.
 
-## Try it
+## Use it
 
-Open `index.html` in a browser. It loads 12 sample farewell messages. Pick a design and paper size (untick **Cover page** to leave the cover out), then press **Print / Save as PDF**. In the print dialog, set margins to **None** and turn on **Background graphics**.
+1. Get the files: on GitHub, choose **Code → Download ZIP**, then unzip it. (Or clone the repository.)
+2. Open `index.html` in Chrome, Edge, Safari or Firefox. You need to be online the first time so the fonts can load.
+3. Fill in the cover on the left: title, who it's for, occasion, how it's signed, and the date. A cover photo is optional.
+4. Add each person: their name, their message, and a photo if you have one. Use the arrows to change the order. The preview on the right updates as you type, one page per person.
+5. Pick a design and paper size at the top. Untick **Cover page** to leave the cover out.
+6. Press **Print / Save as PDF**. In the print dialog, set margins to **None** and turn on **Background graphics**.
 
-To use your own messages, press **Load messages (.json)** and choose a file in the format below.
+Everything you type is saved in that browser automatically. **Save to file** keeps a copy you can open later or on another computer with **Open file**. **Load example** fills the book with 12 sample messages so you can try the designs.
 
 ## Page designs
 
@@ -25,7 +30,9 @@ Each message is sized to fill its page: short ones are written large, long ones 
 
 All designs print on A4 or US Letter.
 
-## Message format
+## Saved file format
+
+**Save to file** writes a JSON file like this. You don't need to write it by hand, but you can.
 
 ```json
 {
@@ -44,10 +51,11 @@ All designs print on A4 or US Letter.
 }
 ```
 
-Only `entries` is required, and each entry needs `name` and `message`. A blank line in a message starts a new paragraph. Photo paths are relative to `index.html`, or can be full URLs.
+Only `entries` is required, and each entry needs `name` and `message`. A blank line in a message starts a new paragraph. Photos added in the editor are stored inside the file; a photo can also be a path relative to `index.html` or a full URL.
 
 ## How it's built
 
+- `index.html`, `src/editor.js` and `src/editor.css` are the editor: the form, the live preview, saving, and printing.
 - `src/scrapbook.js` is the renderer. It loads each design's fonts, makes one page per person, and sizes each message to fill its page.
 - `templates/<design>.js` and `templates/<design>.css` define each design: its cover and how one person's page looks.
 - `samples/farewell.js` holds the sample messages. `samples/photos/` has placeholder illustrations.

@@ -40,7 +40,7 @@
 
     cover({ book, count, u }) {
       return `<div class="k-cover">
-        <p class="k-cover-for">for ${u.esc(book.recipient || '')}</p>
+        ${book.recipient ? `<p class="k-cover-for">for ${u.esc(book.recipient)}</p>` : ''}
         ${book.coverPhoto ? polaroid(u, book.coverPhoto, book.coverCaption, 'k-cover-photo') : ''}
         <div class="k-cover-card">
           <div class="k-cover-paper" style="clip-path:${u.torn(3)}">

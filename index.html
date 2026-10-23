@@ -11,66 +11,8 @@
   <link rel="stylesheet" href="templates/corkboard.css">
   <link rel="stylesheet" href="templates/riso.css">
   <link rel="stylesheet" href="templates/notebook.css">
+  <link rel="stylesheet" href="src/editor.css">
   <style id="page-size">@page { size: A4; margin: 0; }</style>
-  <style>
-    :root {
-      --bg: #e9ebe7;
-      --bar: #ffffff;
-      --fg: #1f2421;
-      --muted: #5d665f;
-      --line: #cfd4cd;
-      --accent: #2c5a4b;
-      color-scheme: light;
-    }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font: 14px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
-    }
-    .bar {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px 20px;
-      padding: 12px 20px;
-      background: var(--bar);
-      border-bottom: 1px solid var(--line);
-    }
-    .bar h1 { margin: 0 8px 0 0; font-size: 16px; }
-    .bar label { display: flex; align-items: center; gap: 8px; color: var(--muted); }
-    .bar select, .bar button, .bar .file {
-      font: inherit;
-      padding: 6px 10px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #fff;
-      color: var(--fg);
-    }
-    .bar .file { cursor: pointer; }
-    .bar .file input { display: none; }
-    .bar button.print { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
-    .bar .hint { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12.5px; }
-    .bar .status { color: #a3341f; }
-    #pages {
-      display: grid;
-      justify-items: center;
-      gap: 28px;
-      padding: 28px 16px 60px;
-    }
-    #pages .sheet-frame {
-      max-width: var(--max-w, 210mm);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
-    }
-    @media print {
-      body { background: none; }
-      .bar { display: none; }
-      #pages { display: block; padding: 0; }
-    }
-  </style>
 </head>
 <body>
   <header class="bar">
@@ -82,12 +24,78 @@
         <option value="letter">US Letter</option>
       </select>
     </label>
-    <label><input id="cover" type="checkbox" checked> Cover page</label>
-    <label class="file">Load messages (.json)<input id="file" type="file" accept=".json,application/json"></label>
-    <button class="print" id="print" type="button">Print / Save as PDF</button>
-    <p class="hint">In the print dialog, set margins to <b>None</b> and turn on <b>Background graphics</b>. <span class="status" id="status"></span></p>
+    <label class="check"><input id="cover" type="checkbox" checked> Cover page</label>
+    <span class="spacer"></span>
+    <span class="count" id="count"></span>
+    <button class="primary" id="print" type="button">Print / Save as PDF</button>
   </header>
-  <main id="pages"></main>
+
+  <div class="layout">
+    <aside class="editor" aria-label="Scrapbook contents">
+      <section class="panel">
+        <h2>Cover</h2>
+        <div class="field">
+          <label for="f-title">Title</label>
+          <input id="f-title" data-field="title" placeholder="Bon voyage, Maya">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-recipient">Who it's for</label>
+            <input id="f-recipient" data-field="recipient" placeholder="Maya Okafor">
+          </div>
+          <div class="field">
+            <label for="f-occasion">Occasion</label>
+            <input id="f-occasion" data-field="occasion" placeholder="Farewell">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-from">Signed</label>
+          <input id="f-from" data-field="from" placeholder="With love from everyone at Northwind Studio">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-date">Date</label>
+            <input id="f-date" data-field="date" type="date">
+          </div>
+          <div class="field">
+            <label for="f-place">Place <span class="opt">(Airmail address)</span></label>
+            <input id="f-place" data-field="place" placeholder="Lisbon">
+          </div>
+        </div>
+        <div class="photo" id="cover-photo">
+          <img class="thumb" alt="" hidden>
+          <label class="button small">Add cover photo<input type="file" accept="image/*" data-photo="cover"></label>
+          <button class="small link" type="button" data-act="unphoto-cover" hidden>Remove photo</button>
+          <input class="caption" id="f-coverCaption" data-field="coverCaption" placeholder="Photo caption (optional)" aria-label="Cover photo caption" hidden>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>People</h2>
+          <span class="hint">One page each, in this order</span>
+        </div>
+        <ol class="people" id="people"></ol>
+        <button class="add" id="add" type="button">+ Add a person</button>
+      </section>
+
+      <section class="panel">
+        <h2>Your work</h2>
+        <p class="hint" id="save-status">Everything you type is saved in this browser.</p>
+        <div class="buttons">
+          <button type="button" id="export">Save to file</button>
+          <label class="button">Open file<input id="import" type="file" accept=".json,application/json"></label>
+          <button type="button" id="example">Load example</button>
+          <button type="button" class="danger" id="reset">Start over</button>
+        </div>
+        <p class="hint">Saving to a file keeps a copy you can open on another computer. When printing, set margins to <b>None</b> and turn on <b>Background graphics</b>.</p>
+      </section>
+    </aside>
+
+    <main class="preview" id="preview" aria-label="Preview">
+      <div class="pages" id="pages"></div>
+    </main>
+  </div>
 
   <script src="src/scrapbook.js"></script>
   <script src="templates/kraft.js"></script>
@@ -97,57 +105,6 @@
   <script src="templates/riso.js"></script>
   <script src="templates/notebook.js"></script>
   <script src="samples/farewell.js"></script>
-  <script>
-    const $ = (id) => document.getElementById(id);
-    const pages = $('pages');
-    let book = window.SAMPLE_BOOK;
-    let run = 0;
-
-    for (const t of Scrapbook.templates) $('template').add(new Option(t.name, t.id));
-    const fromHash = location.hash.slice(1);
-    if (Scrapbook.templates.some((t) => t.id === fromHash)) $('template').value = fromHash;
-
-    async function draw() {
-      const id = $('template').value;
-      const paper = Scrapbook.PAPER[$('paper').value];
-      const mine = ++run;
-      $('page-size').textContent = `@page { size: ${paper.css}; margin: 0; }`;
-      pages.style.setProperty('--max-w', paper.w + 'mm');
-      pages.replaceChildren();
-      await Scrapbook.render(book, id, {
-        paper: paper.id,
-        cover: $('cover').checked,
-        place: (sheet) => {
-          if (mine !== run) return;
-          const f = Scrapbook.frame(paper);
-          f.append(sheet);
-          pages.append(f);
-          Scrapbook.scaleFrames(f.parentNode);
-        },
-      });
-      Scrapbook.scaleFrames(pages);
-      history.replaceState(null, '', '#' + id);
-    }
-
-    $('template').addEventListener('change', draw);
-    $('paper').addEventListener('change', draw);
-    $('cover').addEventListener('change', draw);
-    $('print').addEventListener('click', () => window.print());
-    $('file').addEventListener('change', async (ev) => {
-      const file = ev.target.files[0];
-      if (!file) return;
-      try {
-        const data = JSON.parse(await file.text());
-        if (!Array.isArray(data.entries)) throw new Error('The file needs an "entries" list.');
-        book = data;
-        $('status').textContent = '';
-        draw();
-      } catch (err) {
-        $('status').textContent = `Couldn't read ${file.name}: ${err.message}`;
-      }
-    });
-    new ResizeObserver(() => Scrapbook.scaleFrames(pages)).observe(pages);
-    draw();
-  </script>
+  <script src="src/editor.js"></script>
 </body>
 </html>
