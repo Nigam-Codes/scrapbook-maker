@@ -25,13 +25,13 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ESC[c]);
 
   // Blank lines start a new paragraph; single line breaks are kept.
-  function paragraphs(text) {
+  function blocks(text) {
     return String(text ?? '')
       .trim()
       .split(/\n\s*\n/)
-      .map((p) => `<p>${esc(p.trim()).replace(/\n/g, '<br>')}</p>`)
-      .join('');
+      .map((p) => esc(p.trim()).replace(/\n/g, '<br>'));
   }
+  const paragraphs = (text) => blocks(text).map((b) => `<p>${b}</p>`).join('');
 
   function initial(name) {
     const m = String(name ?? '').match(/[\p{L}\p{N}]/u);
@@ -96,7 +96,7 @@
     return `polygon(${top.join(',')},${bottom.join(',')})`;
   }
 
-  const util = { esc, paragraphs, initial, pad, length, formatDate, torn };
+  const util = { esc, blocks, paragraphs, initial, pad, length, parseDate, formatDate, torn };
 
   /* ---------- fonts ---------- */
 
@@ -179,7 +179,9 @@
   }
 
   /**
-   * Render a book with a template: a cover, then one page per person.
+   * Render a book with a design: a cover, then one page per person. A person
+   * whose entry has a `style` (a message look such as 'imessage') gets that
+   * look for their page instead of the book's design.
    * opts.paper      'a4' | 'letter'
    * opts.place      (sheet, info) => void — attaches each sheet to the page (it must
    *                 be in the document so it can be measured). Defaults to opts.host.
@@ -190,31 +192,42 @@
     const tpl = templates.get(id);
     if (!tpl) throw new Error(`Unknown template "${id}"`);
     const paper = PAPER[opts.paper] || PAPER.a4;
-    await loadFonts(tpl);
+
+    const entries = (book.entries || []).filter((e) => e && String(e.message ?? '').trim());
+    const pageTpl = (e) => {
+      const t = e.style && templates.get(e.style);
+      return t && t.kind === 'message' ? t : tpl;
+    };
+    const used = new Set([tpl, ...(opts.coverOnly ? [] : entries.map(pageTpl))]);
+    await Promise.all([...used].map(loadFonts));
 
     const place = opts.place || ((s) => (opts.host || document.body).append(s));
     const sheets = [];
-    const make = (kind, html, entry) => {
+    const make = (t, kind, html, entry) => {
       const s = document.createElement('section');
-      s.className = `sheet sheet--${kind} tpl-${tpl.id}`;
+      s.className = `sheet sheet--${kind} tpl-${t.id}`;
       s.style.setProperty('--page-w', paper.w + 'mm');
       s.style.setProperty('--page-h', paper.h + 'mm');
       s.innerHTML = html;
-      place(s, { kind, index: sheets.length, paper, entry });
+      place(s, { kind, index: sheets.length, paper, entry, template: t });
       sheets.push(s);
       return s;
     };
 
-    const entries = (book.entries || []).filter((e) => e && String(e.message ?? '').trim());
     const ctx = { book, count: entries.length, paper, u: util };
 
-    if (opts.cover !== false || opts.coverOnly) make('cover', tpl.cover(ctx));
+    if (opts.cover !== false || opts.coverOnly) make(tpl, 'cover', tpl.cover(ctx));
     if (!opts.coverOnly) {
       entries.forEach((e, i) => {
-        const sheet = make('page', shell(tpl, ctx, i + 1), e);
-        sheet.querySelector('.page-body').innerHTML = tpl.entry(e, { i, n: i + 1 }, ctx);
+        const t = pageTpl(e);
+        const sheet = make(t, 'page', shell(t, ctx, i + 1), e);
+        sheet.querySelector('.page-body').innerHTML = t.entry(e, { i, n: i + 1 }, ctx);
       });
     }
+    // Photos without a fixed shape take their height from the image, so size
+    // text only once they have loaded.
+    const images = sheets.flatMap((s) => [...s.querySelectorAll('img')]).filter((img) => !img.complete);
+    await Promise.race([Promise.all(images.map((img) => img.decode().catch(() => {}))), timeout(8000)]);
     sheets.forEach(fit);
     return sheets;
   }
@@ -248,6 +261,8 @@
     scaleFrames,
     util,
     PAPER,
-    get templates() { return [...templates.values()]; },
+    // Book designs (with a cover) and per-person message looks.
+    get templates() { return [...templates.values()].filter((t) => t.kind !== 'message'); },
+    get messageStyles() { return [...templates.values()].filter((t) => t.kind === 'message'); },
   };
 })();

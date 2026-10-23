@@ -1,7 +1,9 @@
 /*
  * Sample book: farewell messages for a colleague moving abroad.
  * Every field except `entries` is optional. Each entry needs `name` and `message`;
- * `photo` (any image URL or path) and `caption` are optional.
+ * `photo` (any image URL or path), `caption` and `style` are optional. `style` makes
+ * that person's page look like a message they sent: imessage, whatsapp, slack,
+ * gmail or outlook. Without it, the page uses the book's design.
  * The photos are placeholder illustrations.
  */
 window.SAMPLE_BOOK = {
@@ -17,6 +19,7 @@ window.SAMPLE_BOOK = {
     {
       name: 'Arjun',
       message: "Six years of sitting across from you and I still don't know how you kept a plant alive in that corner. Lisbon is lucky. Send pastéis photos, and please leave the good stapler.",
+      style: 'imessage',
     },
     {
       name: 'Priya Raman',
@@ -27,6 +30,7 @@ window.SAMPLE_BOOK = {
       message: "Boa viagem! You already know where to get the best bifanas because I've told you eleven times. My aunt lives in Alfama and she's expecting you for dinner. No excuses.",
       photo: 'samples/photos/lisbon.svg',
       caption: "From my aunt's window",
+      style: 'whatsapp',
     },
     {
       name: 'Hannah',
@@ -35,6 +39,7 @@ window.SAMPLE_BOOK = {
     {
       name: 'Dev',
       message: "Maya, I've been trying to write this for a week. When the Harbor project fell apart and the client walked, you were the one who stayed late, rebuilt the deck from nothing, and then took the whole team out for noodles like nothing had happened. I learned more from watching you that month than from any course.\n\nYou never made anyone feel small for asking a question, and you always made sure the quiet people in the room got heard. That's rarer than you think. I'm going to try to be that for the new folks.\n\nGo eat everything, learn the language badly, and send us the view from your new desk.",
+      style: 'gmail',
     },
     {
       name: 'Sofia',
@@ -43,6 +48,7 @@ window.SAMPLE_BOOK = {
     {
       name: 'Ben & Olu',
       message: "We pooled our thoughts and came up with: thank you, we'll miss you, and the coffee machine will never be descaled again.",
+      style: 'slack',
     },
     {
       name: 'Grace',
@@ -53,6 +59,7 @@ window.SAMPLE_BOOK = {
     {
       name: 'Kenji',
       message: "Thank you for every \"have you tried it the other way round?\" It worked about 80% of the time, which is an outrageous hit rate. Enjoy the light there. Everyone says it's different.",
+      style: 'outlook',
     },
     {
       name: 'Leila',

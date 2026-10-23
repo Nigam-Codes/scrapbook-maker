@@ -153,6 +153,17 @@ textarea { resize: vertical; min-height: 96px; line-height: 1.45; }
 .person-tools button:disabled { opacity: 0.3; cursor: default; }
 .person .hint.warn { margin-top: -2px; }
 
+.look, .look-all { display: flex; align-items: center; gap: 8px; }
+.look label, .look-all label { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.look select, .look-all select {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+}
+
 .add { justify-self: start; }
 .buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 

@@ -16,7 +16,9 @@
   const blankBook = () => ({
     title: '', recipient: '', occasion: '', from: '', date: '', place: '', coverPhoto: '', coverCaption: '', entries: [],
   });
-  const blankPerson = () => ({ id: newId(), name: '', message: '', photo: '', caption: '' });
+  const blankPerson = () => ({ id: newId(), name: '', message: '', photo: '', caption: '', style: '' });
+  const STYLES = Scrapbook.messageStyles;
+  const styleName = (id) => (STYLES.find((t) => t.id === id) || {}).name || '';
 
   // Accept anything shaped roughly like a book; ids are internal and reissued.
   function normalise(data) {
@@ -28,6 +30,7 @@
       message: String(e?.message ?? ''),
       photo: String(e?.photo ?? ''),
       caption: String(e?.caption ?? ''),
+      style: styleName(e?.style) ? e.style : '',
     }));
     return book;
   }
@@ -151,6 +154,11 @@
     return '';
   }
 
+  // "Book design" first, then each message look (sent as a text, chat or email).
+  const lookOptions = () =>
+    `<option value="">Book design (${Scrapbook.util.esc($('template').selectedOptions[0]?.text || '')})</option>` +
+    STYLES.map((t) => `<option value="${t.id}">${Scrapbook.util.esc(t.name)}</option>`).join('');
+
   function personCard(p, i, total) {
     const li = document.createElement('li');
     li.className = 'person';
@@ -166,6 +174,10 @@
         </div>
       </div>
       <textarea id="msg-${p.id}" data-key="message" rows="4" placeholder="Their message" aria-label="Message from person ${i + 1}"></textarea>
+      <div class="look">
+        <label for="look-${p.id}">Looks like</label>
+        <select id="look-${p.id}" data-key="style">${lookOptions()}</select>
+      </div>
       <div class="photo">
         <img class="thumb" alt="" hidden>
         <label class="button small">Add photo<input type="file" accept="image/*" data-photo="person"></label>
@@ -176,6 +188,7 @@
     li.querySelector('[data-key="name"]').value = p.name;
     li.querySelector('[data-key="message"]').value = p.message;
     li.querySelector('[data-key="caption"]').value = p.caption;
+    li.querySelector('[data-key="style"]').value = p.style;
     showPhoto(li.querySelector('.photo'), p.photo);
     showWarning(li, p);
     return li;
@@ -243,7 +256,8 @@
         } else {
           fig.dataset.person = info.entry.id;
           const n = $('cover').checked ? info.index : info.index + 1;
-          cap.textContent = `${n} · ${info.entry.name.trim() || 'No name yet'}`;
+          const look = styleName(info.entry.style);
+          cap.textContent = `${n} · ${info.entry.name.trim() || 'No name yet'}${look ? ` · ${look}` : ''}`;
         }
         fig.append(f, cap);
         stage.append(fig);
@@ -292,9 +306,22 @@
     $(id).addEventListener('change', () => {
       savePrefs();
       updateCount();
+      if (id === 'template') renderList();
       renderPreview();
     });
   }
+
+  // Set every person's look at once.
+  for (const t of STYLES) $('all-style').add(new Option(t.name, t.id));
+  $('all-style').add(new Option('Book design', 'book'), 1);
+  $('all-style').addEventListener('change', () => {
+    const v = $('all-style').value;
+    if (!v) return;
+    for (const p of book.entries) p.style = v === 'book' ? '' : v;
+    $('all-style').value = '';
+    renderList();
+    changed();
+  });
   $('print').addEventListener('click', () => window.print());
 
   // Cover fields

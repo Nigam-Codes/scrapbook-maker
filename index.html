@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="templates/corkboard.css">
   <link rel="stylesheet" href="templates/riso.css">
   <link rel="stylesheet" href="templates/notebook.css">
+  <link rel="stylesheet" href="templates/messages.css">
   <link rel="stylesheet" href="src/editor.css">
   <style id="page-size">@page { size: A4; margin: 0; }</style>
 </head>
@@ -75,6 +76,10 @@
           <h2>People</h2>
           <span class="hint">One page each, in this order</span>
         </div>
+        <div class="look-all">
+          <label for="all-style">Make every page look like</label>
+          <select id="all-style"><option value="">Choose…</option></select>
+        </div>
         <ol class="people" id="people"></ol>
         <button class="add" id="add" type="button">+ Add a person</button>
       </section>
@@ -104,6 +109,7 @@
   <script src="templates/corkboard.js"></script>
   <script src="templates/riso.js"></script>
   <script src="templates/notebook.js"></script>
+  <script src="templates/messages.js"></script>
   <script src="samples/farewell.js"></script>
   <script src="src/editor.js"></script>
 </body>
