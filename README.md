@@ -10,7 +10,7 @@ Each person's message (a name, the text, and optionally a photo) gets a printabl
 2. Open `index.html` in Chrome, Edge, Safari or Firefox. You need to be online the first time so the fonts can load.
 3. Fill in the cover on the left: title, who it's for, occasion, how it's signed, and the date. A cover photo is optional.
 4. Add each person: their name, their message, and a photo if you have one. Use the arrows to change the order. The preview on the right updates as you type, one page per person.
-5. Optionally choose **Looks like** on a person's card to make their page look like a text, chat or email they sent (see below).
+5. Optionally choose **Looks like** on a person's card to make their page look like a text, chat or email they sent, or put several people together in a **group chat** (see below).
 6. Pick a design and paper size at the top. Untick **Cover page** to leave the cover out.
 7. Press **Print / Save as PDF**. In the print dialog, set margins to **None** and turn on **Background graphics**.
 
@@ -44,11 +44,24 @@ To mix things up, press **Shuffle looks** for a random mix of every look, or cho
 | **Snapchat** | A phone chat screen with their name in blue capitals above their messages, each marked with a blue line. |
 | **Messenger** | A phone chat screen with grey bubbles beside their small avatar, and blue icons. |
 | **Slack** | A direct message in a desktop chat window: their avatar, name and time above the message. |
+| **Discord** | A dark desktop chat: their avatar, name and timestamp above the message. |
+| **Hike** | A phone chat under a bright blue header, with rounded white bubbles. |
 | **Gmail** | An email open in the inbox: the book's title as the subject, their name and letter avatar, "to me". |
 | **Outlook** | An email in the reading pane: subject, their initials, "To:" the recipient. |
 | **Canvas Inbox** | A message in the Canvas course inbox: subject, their initials and name "to" the recipient, with a Reply button. |
 
 Every look shows the message arriving on the recipient's screen, on the book's date, with each person at a different time of day. Photos appear the way that app shows them, with the caption as a message or label. The looks are drawn from each app's general layout, colours and type; no logos are used, and the app names belong to their owners.
+
+## Group chats
+
+Several people can share one page as a group chat, with each person's message arriving on its own under their name, avatar and a time a few minutes after the last.
+
+1. In **Group chats**, press **New group chat**, give it a name (such as "Design team") and choose its look: **WhatsApp**, **Discord** or **Hike**.
+2. On each person's card, choose that group under **Group chat**.
+
+The group's page goes where its first member is in the list, and its members appear in list order. A person in a group keeps their own message and photo; their **Looks like** choice is set aside while they're in it. The recipient counts as a member too ("…, You" on WhatsApp, the member list on Discord, "N members" on Hike).
+
+If a group has too much to fit on one page at a readable size, the chat continues on the next page, split as evenly as possible. Removing a group gives its people their own pages again.
 
 ## Saved file format
 
@@ -64,21 +77,25 @@ Every look shows the message arriving on the recipient's screen, on the book's d
   "place": "Lisbon",
   "coverPhoto": "photos/cover.jpg",
   "coverCaption": "Next stop: Lisbon",
+  "groups": [
+    { "id": "studio", "name": "Studio crew", "style": "whatsapp" }
+  ],
   "entries": [
     { "name": "Arjun", "message": "Lisbon is lucky. Please leave the good stapler." },
-    { "name": "Tomás", "message": "Boa viagem!", "photo": "photos/tomas.jpg", "caption": "Alfama", "style": "whatsapp" }
+    { "name": "Tomás", "message": "Boa viagem!", "photo": "photos/tomas.jpg", "caption": "Alfama", "style": "whatsapp" },
+    { "name": "Sofia", "message": "Keep sending the playlists.", "group": "studio" }
   ]
 }
 ```
 
-Only `entries` is required, and each entry needs `name` and `message`. `style` is a message look (`imessage`, `whatsapp`, `snapchat`, `messenger`, `slack`, `gmail`, `outlook`, `canvas`) or a paper design (`kraft`, `airmail`, `keepsake`, `corkboard`, `riso`, `notebook`); leave it out to use the book's design. A blank line in a message starts a new paragraph. Photos added in the editor are stored inside the file; a photo can also be a path relative to `index.html` or a full URL.
+Only `entries` is required, and each entry needs `name` and `message`. `style` is a message look (`imessage`, `whatsapp`, `snapchat`, `messenger`, `slack`, `discord`, `hike`, `gmail`, `outlook`, `canvas`) or a paper design (`kraft`, `airmail`, `keepsake`, `corkboard`, `riso`, `notebook`); leave it out to use the book's design. `group` is the `id` of one of the `groups`, whose `style` is `whatsapp`, `discord` or `hike`. A blank line in a message starts a new paragraph. Photos added in the editor are stored inside the file; a photo can also be a path relative to `index.html` or a full URL.
 
 ## How it's built
 
 - `index.html`, `src/editor.js` and `src/editor.css` are the editor: the form, the live preview, saving, and printing.
-- `src/scrapbook.js` is the renderer. It loads each design's fonts, makes one page per person, and sizes each message to fill its page.
+- `src/scrapbook.js` is the renderer. It loads each design's fonts, makes one page per person (or per group chat, split across pages when needed), and sizes each message to fill its page.
 - `templates/<design>.js` and `templates/<design>.css` define each design: its cover and how one person's page looks.
-- `templates/messages.js` and `templates/messages.css` define the message looks. They have no cover and are picked per person.
+- `templates/messages.js` and `templates/messages.css` define the message looks. They have no cover and are picked per person. Looks with a `group()` function can also draw a group chat.
 - `samples/farewell.js` holds the sample messages. `samples/photos/` has placeholder illustrations.
 
 To add a design, copy one of the existing pairs in `templates/`, give it a new `id`, and include both files in `index.html`.

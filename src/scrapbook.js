@@ -178,13 +178,83 @@
     return `<header class="page-head">${head}</header><div class="page-body"></div><footer class="folio">${folio}</footer>`;
   }
 
+  // Group chats are never shrunk below this, so they stay readable; a group
+  // with more to say than fits continues on another page.
+  const GROUP_MIN_FIT = 1.05;
+
+  const whenLoaded = async (root) => {
+    const images = [...root.querySelectorAll('img')].filter((img) => !img.complete);
+    await Promise.race([Promise.all(images.map((img) => img.decode().catch(() => {}))), timeout(8000)]);
+  };
+
+  function sheetEl(t, kind, html, paper) {
+    const s = document.createElement('section');
+    s.className = `sheet sheet--${kind} tpl-${t.id}${t.kind === 'message' ? ' sheet--msg' : ''}`;
+    s.style.setProperty('--page-w', paper.w + 'mm');
+    s.style.setProperty('--page-h', paper.h + 'mm');
+    s.innerHTML = html;
+    return s;
+  }
+
+  // Off-screen space for trying a layout before it is placed.
+  function scratchSpace() {
+    const host = document.createElement('div');
+    host.setAttribute('aria-hidden', 'true');
+    host.style.cssText = 'position:absolute;left:-30000px;top:0;visibility:hidden;pointer-events:none;';
+    document.body.append(host);
+    return host;
+  }
+
+  // Split a group's members into pages: add people one at a time and start a
+  // new page when the chat would no longer fit at a readable size. Order is kept.
+  async function splitGroup(item, ctx, host) {
+    const fitsAt = async (members, part) => {
+      const s = sheetEl(item.t, 'page', shell(item.t, ctx, 1), ctx.paper);
+      s.querySelector('.page-body').innerHTML = item.t.group(item.g, members, { part, n: 1, all: item.members }, ctx);
+      host.append(s);
+      await whenLoaded(s);
+      const boxes = [...s.querySelectorAll('[data-fit]')];
+      boxes.forEach((el) => el.style.setProperty('--fit', GROUP_MIN_FIT));
+      const ok = boxes.every((el) => el.scrollHeight <= el.clientHeight + 1);
+      s.remove();
+      return ok;
+    };
+    const chunks = [];
+    let current = [];
+    for (const m of item.members) {
+      const trial = [...current, m];
+      if (current.length && !(await fitsAt(trial, chunks.length + 1))) {
+        chunks.push(current);
+        current = [m];
+      } else {
+        current = trial;
+      }
+    }
+    if (current.length) chunks.push(current);
+    // Even out the pages, so nobody is left alone on the last one: move people
+    // forward from a fuller page while the next one still fits.
+    for (let c = chunks.length - 1; c > 0; c--) {
+      while (chunks[c - 1].length - 1 > chunks[c].length) {
+        const moved = [chunks[c - 1][chunks[c - 1].length - 1], ...chunks[c]];
+        if (!(await fitsAt(moved, c + 1))) break;
+        chunks[c] = moved;
+        chunks[c - 1] = chunks[c - 1].slice(0, -1);
+      }
+    }
+    return chunks;
+  }
+
   /**
-   * Render a book with a design: a cover, then one page per person. A person
-   * whose entry has a `style` (another design, or a message look such as
-   * 'imessage') gets that look for their page instead of the book's design.
+   * Render a book with a design: a cover, then one page per person.
+   * - A person whose entry has a `style` (another design, or a message look
+   *   such as 'imessage') gets that look for their page.
+   * - People whose entries share a `group` (an id from book.groups) appear
+   *   together on one group chat page, at the place of the first of them, in
+   *   that group's look.
    * opts.paper      'a4' | 'letter'
    * opts.place      (sheet, info) => void — attaches each sheet to the page (it must
    *                 be in the document so it can be measured). Defaults to opts.host.
+   *                 info has kind, index, paper, template, and entry or group + members.
    * opts.cover      draw the cover page (default true)
    * opts.coverOnly  only draw the cover
    */
@@ -194,19 +264,36 @@
     const paper = PAPER[opts.paper] || PAPER.a4;
 
     const entries = (book.entries || []).filter((e) => e && String(e.message ?? '').trim());
+    const groups = new Map((book.groups || []).map((g) => [g.id, g]));
     const pageTpl = (e) => (e.style && templates.get(e.style)) || tpl;
-    const used = new Set([tpl, ...(opts.coverOnly ? [] : entries.map(pageTpl))]);
+    const groupTpl = (g) => {
+      const t = g && templates.get(g.style);
+      return t && t.group ? t : null;
+    };
+
+    // The running order: single pages, and each group where its first member is.
+    const plan = [];
+    const placed = new Set();
+    entries.forEach((e, i) => {
+      const g = e.group && groups.get(e.group);
+      const t = groupTpl(g);
+      if (!t) {
+        plan.push({ e, i, t: pageTpl(e) });
+      } else if (!placed.has(g.id)) {
+        placed.add(g.id);
+        const members = entries.map((m, k) => ({ e: m, i: k })).filter((m) => m.e.group === g.id);
+        plan.push({ g, t, members });
+      }
+    });
+
+    const used = new Set([tpl, ...(opts.coverOnly ? [] : plan.map((p) => p.t))]);
     await Promise.all([...used].map(loadFonts));
 
     const place = opts.place || ((s) => (opts.host || document.body).append(s));
     const sheets = [];
-    const make = (t, kind, html, entry) => {
-      const s = document.createElement('section');
-      s.className = `sheet sheet--${kind} tpl-${t.id}${t.kind === 'message' ? ' sheet--msg' : ''}`;
-      s.style.setProperty('--page-w', paper.w + 'mm');
-      s.style.setProperty('--page-h', paper.h + 'mm');
-      s.innerHTML = html;
-      place(s, { kind, index: sheets.length, paper, entry, template: t });
+    const make = (t, kind, html, info = {}) => {
+      const s = sheetEl(t, kind, html, paper);
+      place(s, { kind, index: sheets.length, paper, template: t, ...info });
       sheets.push(s);
       return s;
     };
@@ -215,16 +302,29 @@
 
     if (opts.cover !== false || opts.coverOnly) make(tpl, 'cover', tpl.cover(ctx));
     if (!opts.coverOnly) {
-      entries.forEach((e, i) => {
-        const t = pageTpl(e);
-        const sheet = make(t, 'page', shell(t, ctx, i + 1), e);
-        sheet.querySelector('.page-body').innerHTML = t.entry(e, { i, n: i + 1 }, ctx);
-      });
+      let n = 0;
+      let host = null;
+      for (const item of plan) {
+        if (item.g) {
+          host = host || scratchSpace();
+          const chunks = await splitGroup(item, ctx, host);
+          chunks.forEach((members, k) => {
+            n++;
+            const sheet = make(item.t, 'page', shell(item.t, ctx, n), { group: item.g, members: members.map((m) => m.e) });
+            sheet.querySelector('.page-body').innerHTML = item.t.group(item.g, members, { part: k + 1, n, all: item.members }, ctx);
+          });
+        } else {
+          n++;
+          const sheet = make(item.t, 'page', shell(item.t, ctx, n), { entry: item.e });
+          sheet.querySelector('.page-body').innerHTML = item.t.entry(item.e, { i: item.i, n }, ctx);
+        }
+      }
+      // Left in the document, the measuring space would print as a blank extra page.
+      if (host) host.remove();
     }
     // Photos without a fixed shape take their height from the image, so size
     // text only once they have loaded.
-    const images = sheets.flatMap((s) => [...s.querySelectorAll('img')]).filter((img) => !img.complete);
-    await Promise.race([Promise.all(images.map((img) => img.decode().catch(() => {}))), timeout(8000)]);
+    await Promise.all(sheets.map(whenLoaded));
     sheets.forEach(fit);
     return sheets;
   }

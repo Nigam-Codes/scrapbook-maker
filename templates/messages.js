@@ -1,9 +1,10 @@
 /*
  * Message looks: a person's page drawn as if their message just arrived on
  * the recipient's screen, as a chat (iMessage, WhatsApp, Snapchat, Messenger,
- * Slack) or an inbox message (Gmail, Outlook, Canvas Inbox). They are chosen
- * per person in the editor and replace the book's design for that page only.
- * Recreated from layout, colour and type; no logos are used.
+ * Slack, Discord, Hike) or an inbox message (Gmail, Outlook, Canvas Inbox).
+ * They are chosen per person in the editor and replace the book's design for
+ * that page only. Looks with a group() can also show several people together
+ * as a group chat. Recreated from layout, colour and type; no logos are used.
  */
 (function () {
   /* ---------- shared bits ---------- */
@@ -81,6 +82,11 @@
     inbox: 'M4 13l2-8h12l2 8v6H4zM4 13h5l1 2h4l1-2h5',
     help: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17v.01',
     compose: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
+    users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.3M18 14a6.5 6.5 0 0 1 3.5 6',
+    at: 'M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1',
+    pin: 'M9 4h6l-1 5 3 3H7l3-3zM12 12v8',
+    gift: 'M4 9h16v4H4zM6 13v7h12v-7M12 9v11M12 9C10 5 6 5 6 7.5S12 9 12 9zm0 0c2-4 6-4 6-1.5S12 9 12 9z',
+    sticker: 'M5 4h9l5 5v11H5zM14 4v5h5M9 14a3.5 3.5 0 0 0 6 0',
   };
   const icon = (name, cls = '') =>
     `<svg class="mx-icon ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[name]}"/></svg>`;
@@ -104,6 +110,31 @@
     kind: 'message',
     pageHead: () => '',
   };
+
+  /* ---------- group chat helpers ---------- */
+
+  // Distinct name colours for the people in one group chat.
+  const MEMBER_COLOURS = ['#e542a3', '#1f7aec', '#02a698', '#d3396d', '#7f66ff', '#fa6533', '#a62c71', '#00838f'];
+  const memberColour = (k) => MEMBER_COLOURS[k % MEMBER_COLOURS.length];
+
+  const later = (t, mins) => {
+    const total = t.h * 60 + t.m + mins;
+    return { h: Math.floor(total / 60) % 24, m: total % 60 };
+  };
+
+  // In a group, messages arrive in order a few minutes apart.
+  function groupTimes(all) {
+    const start = clock(all[0].i);
+    let mins = 0;
+    return new Map(all.map((m, j) => {
+      mins += j ? 3 + (hash(m.e.name) % 6) : 0;
+      return [m, later(start, mins)];
+    }));
+  }
+
+  const groupTitle = (g, all) => g.name || all.map((m) => m.e.name).join(', ');
+  // The recipient is in the group too: it is their phone.
+  const memberList = (all) => [...all.map((m) => m.e.name), 'You'].join(', ');
 
   /* ---------- iMessage ---------- */
 
@@ -149,6 +180,40 @@
 
   /* ---------- WhatsApp ---------- */
 
+  // One person's messages: a photo first if there is one, then a bubble per
+  // paragraph. In a group, the first bubble carries their name in colour.
+  function waBubbles(e, t, u, label) {
+    const time = `<span class="wa-time">${h24(t)}</span>`;
+    const items = [...(e.photo ? [null] : []), ...u.blocks(e.message)];
+    return items.map((b, j) => {
+      const cls = `wa-msg${j === 0 ? ' wa-first' : ''}${b === null ? ' wa-photo' : ''}`;
+      const name = j === 0 ? label : '';
+      if (b === null) {
+        return `<div class="${cls}">${name}<img src="${u.esc(e.photo)}" alt="${photoAlt(e, u)}">${e.caption ? `<span class="wa-cap">${u.esc(e.caption)}${time}</span>` : time}</div>`;
+      }
+      return `<div class="${cls}">${name}${b}${time}</div>`;
+    }).join('');
+  }
+
+  function waScreen({ t, avatar, title, sub, thread }) {
+    return `<article class="entry mx-entry">
+      <div class="ph ph--android"><div class="ph-screen">
+        ${statusBar(h24(t), 'cam')}
+        <div class="wa-head">
+          ${icon('arrow', 'wa-back')}
+          ${avatar}
+          <span class="wa-who"><span class="wa-name">${title}</span>${sub ? `<small class="wa-sub">${sub}</small>` : ''}</span>
+          <span class="wa-actions">${icon('video')}${icon('phone')}${icon('more')}</span>
+        </div>
+        <div class="wa-thread entry-message" data-fit="2.3">${thread}</div>
+        <div class="wa-input">
+          <span class="wa-field">${icon('smile')}<span>Message</span>${icon('clip')}${icon('camera')}</span>
+          <span class="wa-mic">${icon('mic')}</span>
+        </div>
+      </div></div>
+    </article>`;
+  }
+
   Scrapbook.register({
     ...common,
     id: 'whatsapp',
@@ -160,28 +225,32 @@
     entry(e, { i }, { book, u }) {
       const t = clock(i);
       const d = day(book, u);
-      const parts = u.blocks(e.message);
-      const time = `<span class="wa-time">${h24(t)}</span>`;
-      return `<article class="entry mx-entry">
-        <div class="ph ph--android"><div class="ph-screen">
-          ${statusBar(h24(t), 'cam')}
-          <div class="wa-head">
-            ${icon('arrow', 'wa-back')}
-            <span class="wa-avatar" style="background:${colour(e.name)}">${u.esc(initials(e.name, 1))}</span>
-            <span class="wa-name">${u.esc(e.name)}</span>
-            <span class="wa-actions">${icon('video')}${icon('phone')}${icon('more')}</span>
-          </div>
-          <div class="wa-thread entry-message" data-fit="2.3">
-            ${d ? `<div class="wa-day">${d.d} ${d.month} ${d.y}</div>` : ''}
-            ${e.photo ? `<div class="wa-msg wa-first wa-photo"><img src="${u.esc(e.photo)}" alt="${photoAlt(e, u)}">${e.caption ? `<span class="wa-cap">${u.esc(e.caption)}${time}</span>` : time}</div>` : ''}
-            ${parts.map((b, k) => `<div class="wa-msg${k === 0 && !e.photo ? ' wa-first' : ''}">${b}${time}</div>`).join('')}
-          </div>
-          <div class="wa-input">
-            <span class="wa-field">${icon('smile')}<span>Message</span>${icon('clip')}${icon('camera')}</span>
-            <span class="wa-mic">${icon('mic')}</span>
-          </div>
-        </div></div>
-      </article>`;
+      return waScreen({
+        t,
+        avatar: `<span class="wa-avatar" style="background:${colour(e.name)}">${u.esc(initials(e.name, 1))}</span>`,
+        title: u.esc(e.name),
+        thread: `${d ? `<div class="wa-day">${d.d} ${d.month} ${d.y}</div>` : ''}${waBubbles(e, t, u, '')}`,
+      });
+    },
+
+    group(g, members, { part, all }, { book, u }) {
+      const d = day(book, u);
+      const times = groupTimes(all);
+      const runs = members.map((m) => {
+        const k = all.indexOf(m);
+        const label = `<span class="wa-sender" style="color:${memberColour(k)}">${u.esc(m.e.name)}</span>`;
+        return `<div class="wa-run">
+          <span class="wa-avatar wa-avatar--sm" style="background:${colour(m.e.name)}">${u.esc(initials(m.e.name, 1))}</span>
+          <div class="wa-run-msgs">${waBubbles(m.e, times.get(m), u, label)}</div>
+        </div>`;
+      }).join('');
+      return waScreen({
+        t: times.get(members[members.length - 1]),
+        avatar: `<span class="wa-avatar wa-avatar--group">${icon('users')}</span>`,
+        title: u.esc(groupTitle(g, all)),
+        sub: u.esc(memberList(all)),
+        thread: `${part === 1 && d ? `<div class="wa-day">${d.d} ${d.month} ${d.y}</div>` : ''}${runs}`,
+      });
     },
   });
 
@@ -443,6 +512,132 @@
           </div>
         </div>
       </article>`;
+    },
+  });
+  /* ---------- Discord ---------- */
+
+  // Discord's default avatar colours.
+  const DISCORD_COLOURS = ['#5865f2', '#3ba55c', '#faa61a', '#ed4245', '#eb459f', '#757e8a'];
+
+  function discordPage({ title, dm, members, all, part }, { book, u }) {
+    const d = day(book, u);
+    const times = groupTimes(all);
+    const stamp = (t) => (d ? `${d.m}/${d.d}/${d.y} ${h12(t)}` : h12(t));
+    const avatar = (m, cls = '') =>
+      `<span class="dc-avatar ${cls}" style="background:${DISCORD_COLOURS[all.indexOf(m) % DISCORD_COLOURS.length]}">${u.esc(initials(m.e.name, 1))}</span>`;
+    const runs = members.map((m) => `<div class="dc-msg">
+        ${avatar(m)}
+        <div class="dc-body">
+          <p class="dc-meta"><b>${u.esc(m.e.name)}</b><span>${stamp(times.get(m))}</span></p>
+          ${u.blocks(m.e.message).map((b) => `<p class="dc-text">${b}</p>`).join('')}
+          ${m.e.photo ? `<figure class="dc-file"><img src="${u.esc(m.e.photo)}" alt="${photoAlt(m.e, u)}">${m.e.caption ? `<figcaption>${u.esc(m.e.caption)}</figcaption>` : ''}</figure>` : ''}
+        </div>
+      </div>`).join('');
+    return `<article class="entry mx-entry">
+      <div class="mx-win dc-win">
+        <div class="dc-top"><span class="mx-lights"><i></i><i></i><i></i></span></div>
+        <div class="dc-main">
+          <div class="dc-chat">
+            <div class="dc-head">
+              ${dm ? icon('at', 'dc-hicon') : `<span class="dc-gicon">${icon('users')}</span>`}
+              <b>${u.esc(title)}</b>
+              <span class="dc-hacts">${icon('phone')}${icon('video')}${icon('pin')}${dm ? '' : icon('users')}</span>
+            </div>
+            <div class="dc-thread entry-message" data-fit="2">
+              ${part === 1 && d ? `<div class="dc-day"><span>${d.month} ${d.d}, ${d.y}</span></div>` : ''}
+              ${runs}
+            </div>
+            <div class="dc-input">${icon('plusCircle')}<span>Message ${dm ? '@' : ''}${u.esc(title)}</span>${icon('gift')}${icon('sticker')}${icon('smile')}</div>
+          </div>
+          ${dm ? '' : `<aside class="dc-members">
+            <p>Members — ${all.length + 1}</p>
+            ${all.map((m) => `<span class="dc-member">${avatar(m, 'dc-avatar--sm')}${u.esc(m.e.name)}</span>`).join('')}
+            <span class="dc-member"><span class="dc-avatar dc-avatar--sm dc-avatar--you">${u.esc(initials(book.recipient || 'You', 1))}</span>${u.esc(book.recipient || 'You')}</span>
+          </aside>`}
+        </div>
+      </div>
+    </article>`;
+  }
+
+  Scrapbook.register({
+    ...common,
+    id: 'discord',
+    name: 'Discord',
+    description: 'A dark desktop chat: their avatar, name and timestamp above each message. Groups list their members on the right.',
+    fonts: ['Noto Sans:wght@400;500;600;700'],
+    fontFaces: ['400 16px "Noto Sans"', '600 16px "Noto Sans"', '700 16px "Noto Sans"'],
+
+    entry(e, { i }, ctx) {
+      const one = [{ e, i }];
+      return discordPage({ title: e.name, dm: true, members: one, all: one, part: 1 }, ctx);
+    },
+
+    group(g, members, { part, all }, ctx) {
+      return discordPage({ title: groupTitle(g, all), members, all, part }, ctx);
+    },
+  });
+
+  /* ---------- Hike ---------- */
+
+  function hikePage({ title, sub, avatar, members, all, part, group }, { book, u }) {
+    const d = day(book, u);
+    const times = groupTimes(all);
+    const runs = members.map((m) => {
+      const t = times.get(m);
+      const k = all.indexOf(m);
+      const time = `<span class="hk-time">${h12(t)}</span>`;
+      const name = group ? `<b class="hk-sender" style="color:${memberColour(k)}">${u.esc(m.e.name)}</b>` : '';
+      const items = [...(m.e.photo ? [null] : []), ...u.blocks(m.e.message)];
+      const bubbles = items.map((b, j) => {
+        const label = j === 0 ? name : '';
+        if (b === null) {
+          return `<div class="hk-msg hk-photo">${label}<img src="${u.esc(m.e.photo)}" alt="${photoAlt(m.e, u)}">${m.e.caption ? `<span class="hk-cap">${u.esc(m.e.caption)}</span>` : ''}${time}</div>`;
+        }
+        return `<div class="hk-msg">${label}${b}${time}</div>`;
+      }).join('');
+      return group
+        ? `<div class="hk-run"><span class="hk-avatar hk-avatar--sm" style="background:${colour(m.e.name)}">${u.esc(initials(m.e.name, 1))}</span><div class="hk-run-msgs">${bubbles}</div></div>`
+        : bubbles;
+    }).join('');
+    const last = times.get(members[members.length - 1]);
+    return `<article class="entry mx-entry">
+      <div class="ph ph--android"><div class="ph-screen">
+        ${statusBar(bare(last), 'cam')}
+        <div class="hk-head">
+          ${icon('arrow', 'hk-back')}
+          ${avatar}
+          <span class="hk-who"><b>${u.esc(title)}</b>${sub ? `<small>${u.esc(sub)}</small>` : ''}</span>
+          <span class="hk-actions">${icon('phone')}${icon('more')}</span>
+        </div>
+        <div class="hk-thread entry-message" data-fit="2.3">
+          ${part === 1 && d ? `<div class="hk-day">${d.d} ${d.month.slice(0, 3)} ${d.y}</div>` : ''}
+          ${runs}
+        </div>
+        <div class="hk-input">
+          <span class="hk-field">${icon('smile')}<span>Type a message</span>${icon('sticker')}</span>
+          <span class="hk-send">${icon('mic')}</span>
+        </div>
+      </div></div>
+    </article>`;
+  }
+
+  Scrapbook.register({
+    ...common,
+    id: 'hike',
+    name: 'Hike',
+    description: 'A phone chat under a bright blue header, with rounded white bubbles. In groups each bubble is signed with a coloured name.',
+    fonts: ['Roboto:wght@400;500;700'],
+    fontFaces: ['400 16px Roboto', '500 16px Roboto', '700 16px Roboto'],
+
+    entry(e, { i }, ctx) {
+      const one = [{ e, i }];
+      const avatar = `<span class="hk-avatar" style="background:${colour(e.name)}">${ctx.u.esc(initials(e.name, 1))}</span>`;
+      return hikePage({ title: e.name, avatar, members: one, all: one, part: 1 }, ctx);
+    },
+
+    group(g, members, { part, all }, ctx) {
+      const avatar = `<span class="hk-avatar hk-avatar--group">${icon('users')}</span>`;
+      return hikePage({ title: groupTitle(g, all), sub: `${all.length + 1} members`, avatar, members, all, part, group: true }, ctx);
     },
   });
 })();

@@ -757,3 +757,231 @@
 }
 .tpl-canvas .cv-body p + p { margin-top: 0.9em; }
 .tpl-canvas .mx-img figcaption { display: flex; align-items: center; gap: 0.3em; color: #0374b5; }
+
+/* ---------- WhatsApp group chat ---------- */
+.wa-who { flex: 1; min-width: 0; display: grid; gap: 0.6mm; }
+.wa-sub { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 10pt; opacity: 0.85; }
+.wa-avatar--group { background: #dfe5e7; color: #fff; font-size: 7mm; }
+.wa-avatar--sm { width: 1.9em; height: 1.9em; box-shadow: none; font-size: 0.8em; }
+.wa-run { display: flex; align-items: flex-start; gap: 0.4em; }
+.wa-run + .wa-run { margin-top: 0.45em; }
+.wa-run-msgs { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3em; min-width: 0; max-width: 85%; }
+.wa-run .wa-msg { max-width: 100%; }
+.wa-sender { display: block; margin-bottom: 0.1em; font-size: 0.82em; font-weight: 500; }
+.wa-photo > .wa-sender { padding: 0.15em 0.35em 0.25em; }
+
+/* ---------- Discord ---------- */
+.tpl-discord { --mx-bg: #dfe2f7; font-family: 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; }
+.dc-win { background: #313338; }
+.dc-top { flex: none; height: 9mm; display: flex; align-items: center; padding: 0 4mm; background: #1e1f22; }
+.dc-main { flex: 1 1 auto; min-height: 0; display: flex; }
+.dc-chat { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.dc-head {
+  flex: none;
+  height: 14mm;
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  padding: 0 6mm;
+  border-bottom: 0.35mm solid #26282c;
+  color: #f2f3f5;
+  font-size: 14pt;
+}
+.dc-head b { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 700; }
+.dc-hicon { font-size: 6mm; color: #80848e; }
+.dc-gicon {
+  flex: none;
+  width: 8mm;
+  height: 8mm;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #5865f2;
+  color: #fff;
+  font-size: 4.6mm;
+}
+.dc-hacts { display: flex; gap: 4.5mm; color: #b5bac1; font-size: 5.6mm; }
+
+.dc-thread {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1em;
+  padding: 5mm 6mm 4mm;
+  color: #dbdee1;
+  font-size: calc(11pt * var(--fit, 1));
+  line-height: 1.45;
+}
+.dc-thread > :first-child { margin-top: auto; }
+.dc-day { position: relative; display: flex; justify-content: center; }
+.dc-day::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 0.3mm solid #3f4147; }
+.dc-day span { position: relative; padding: 0 0.6em; background: #313338; color: #949ba4; font-size: 0.72em; font-weight: 600; }
+.dc-msg { display: flex; align-items: flex-start; gap: 0.8em; }
+.dc-avatar {
+  flex: none;
+  width: 2.5em;
+  height: 2.5em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+}
+.dc-body { flex: 1; min-width: 0; }
+.dc-meta { display: flex; align-items: baseline; gap: 0.55em; }
+.dc-meta b { color: #f2f3f5; font-weight: 600; }
+.dc-meta span { color: #949ba4; font-size: 0.72em; }
+.tpl-discord .dc-text + .dc-text { margin-top: 0.35em; }
+.dc-file { margin-top: 0.5em; }
+.dc-file img { width: 18em; max-width: 100%; border-radius: 0.4em; }
+.dc-file figcaption { margin-top: 0.3em; color: #949ba4; font-size: 0.8em; }
+
+.dc-input {
+  flex: none;
+  height: 12mm;
+  margin: 0 6mm 6mm;
+  display: flex;
+  align-items: center;
+  gap: 3.5mm;
+  padding: 0 4mm;
+  border-radius: 2.5mm;
+  background: #383a40;
+  color: #b5bac1;
+  font-size: 11pt;
+}
+.dc-input span { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #6d6f78; }
+.dc-input .mx-icon { font-size: 5.6mm; }
+
+.dc-members {
+  flex: none;
+  width: 46mm;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5mm;
+  padding: 5mm 4mm;
+  overflow: hidden;
+  background: #2b2d31;
+  color: #949ba4;
+  font-size: 10pt;
+}
+.dc-members p { margin-bottom: 1mm; font-size: 8pt; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.dc-member { display: flex; align-items: center; gap: 2.5mm; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #b5bac1; }
+.dc-avatar--sm { width: 8mm; height: 8mm; font-size: 10pt; }
+.dc-avatar--you { background: #5865f2; }
+
+/* ---------- Hike ---------- */
+.tpl-hike {
+  --mx-bg: #e3eefb;
+  --mx-font: Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --hk-blue: #1e88e5;
+  font-family: var(--mx-font);
+}
+.tpl-hike .ph-status { height: 11mm; padding: 0 7.5mm; background: #1976d2; color: #fff; font-weight: 500; }
+.hk-head {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  padding: 2mm 4mm 4mm;
+  background: var(--hk-blue);
+  box-shadow: 0 0.4mm 1mm rgba(0, 0, 0, 0.15);
+  color: #fff;
+}
+.hk-back { font-size: 7mm; }
+.hk-avatar {
+  flex: none;
+  width: 12mm;
+  height: 12mm;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.5mm rgba(255, 255, 255, 0.75);
+  color: #fff;
+  font: 700 14pt/1 var(--mx-font);
+}
+.hk-avatar--group { background: #bbdefb; color: var(--hk-blue); font-size: 7mm; }
+.hk-avatar--sm { width: 1.9em; height: 1.9em; box-shadow: none; font-size: 0.8em; }
+.hk-who { flex: 1; min-width: 0; display: grid; gap: 0.6mm; }
+.hk-who b { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 500 14.5pt/1.15 var(--mx-font); }
+.hk-who small { font-size: 10pt; opacity: 0.85; }
+.hk-actions { display: flex; gap: 5mm; font-size: 6.5mm; }
+
+.hk-thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  padding: 3mm 4mm;
+  background:
+    radial-gradient(circle, rgba(30, 136, 229, 0.07) 0.6mm, transparent 0.7mm) 0 0 / 6mm 6mm,
+    #edf3fa;
+  color: #263238;
+  font-size: calc(10pt * var(--fit, 1));
+  line-height: 1.32;
+}
+.hk-thread > :first-child { margin-top: auto; }
+.hk-day {
+  align-self: center;
+  margin-bottom: 0.6em;
+  padding: 0.25em 0.9em;
+  border-radius: 1em;
+  background: rgba(30, 136, 229, 0.12);
+  color: #1565c0;
+  font-size: 0.7em;
+  font-weight: 500;
+}
+.hk-msg {
+  align-self: flex-start;
+  max-width: 82%;
+  padding: 0.45em 0.75em 0.4em;
+  border-radius: 1em 1em 1em 0.25em;
+  background: #fff;
+  box-shadow: 0 0.2mm 0.5mm rgba(0, 0, 0, 0.1);
+  overflow-wrap: break-word;
+}
+.hk-sender { display: block; margin-bottom: 0.1em; font-size: 0.8em; }
+.hk-time { display: block; margin-top: 0.15em; text-align: right; color: #90a4ae; font-size: 0.62em; }
+.hk-photo { width: 15em; padding: 0.25em; }
+.hk-photo img { width: 100%; border-radius: 0.8em; }
+.hk-photo > .hk-sender,
+.hk-photo > .hk-time,
+.hk-cap { padding: 0 0.45em; }
+.hk-cap { display: block; padding-top: 0.3em; }
+.hk-run { display: flex; align-items: flex-end; gap: 0.45em; }
+.hk-run + .hk-run { margin-top: 0.5em; }
+.hk-run-msgs { display: flex; flex-direction: column; align-items: flex-start; gap: 0.25em; min-width: 0; max-width: 85%; }
+.hk-run .hk-msg { max-width: 100%; }
+
+.hk-input { flex: none; display: flex; align-items: center; gap: 2.5mm; padding: 2.5mm 3mm 5mm; background: #edf3fa; }
+.hk-field {
+  flex: 1;
+  height: 12mm;
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  padding: 0 4mm;
+  border-radius: 6mm;
+  background: #fff;
+  box-shadow: 0 0.2mm 0.5mm rgba(0, 0, 0, 0.08);
+  color: #90a4ae;
+  font-size: 11.5pt;
+}
+.hk-field span { flex: 1; }
+.hk-field .mx-icon { font-size: 5.6mm; color: var(--hk-blue); }
+.hk-send {
+  width: 12mm;
+  height: 12mm;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--hk-blue);
+  color: #fff;
+  font-size: 5.6mm;
+}
+
+/* Photos in group chats are a little smaller, leaving room for everyone's words. */
+.wa-run .wa-photo,
+.hk-run .hk-photo { width: 12em; }
+.dc-msg .dc-file img { width: 14em; }

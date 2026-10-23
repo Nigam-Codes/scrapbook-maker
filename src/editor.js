@@ -14,9 +14,10 @@
   const newId = () => 'p' + nextId++;
 
   const blankBook = () => ({
-    title: '', recipient: '', occasion: '', from: '', date: '', place: '', coverPhoto: '', coverCaption: '', entries: [],
+    title: '', recipient: '', occasion: '', from: '', date: '', place: '', coverPhoto: '', coverCaption: '',
+    groups: [], entries: [],
   });
-  const blankPerson = () => ({ id: newId(), name: '', message: '', photo: '', caption: '', style: '' });
+  const blankPerson = () => ({ id: newId(), name: '', message: '', photo: '', caption: '', style: '', group: '' });
   // A person's page can use any paper design or message look.
   const DESIGNS = Scrapbook.templates;
   const MESSAGES = Scrapbook.messageStyles;
@@ -24,11 +25,21 @@
   const styleName = (id) => (LOOKS.find((t) => t.id === id) || {}).name || '';
   const esc = Scrapbook.util.esc;
   const optionList = (list) => list.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  // Looks that can show several people together as a group chat.
+  const GROUP_LOOKS = MESSAGES.filter((t) => t.group);
+  const groupLabel = (g) => g.name.trim() || 'Unnamed group';
 
   // Accept anything shaped roughly like a book; ids are internal and reissued.
   function normalise(data) {
     const book = blankBook();
     for (const k of [...COVER_FIELDS, 'coverPhoto']) if (typeof data?.[k] === 'string') book[k] = data[k];
+    const ids = new Set();
+    book.groups = (Array.isArray(data?.groups) ? data.groups : []).map((g, k) => {
+      let id = String(g?.id || `g${k + 1}`);
+      while (ids.has(id)) id += '-';
+      ids.add(id);
+      return { id, name: String(g?.name ?? ''), style: GROUP_LOOKS.some((t) => t.id === g?.style) ? g.style : GROUP_LOOKS[0].id };
+    });
     book.entries = (Array.isArray(data?.entries) ? data.entries : []).map((e) => ({
       id: newId(),
       name: String(e?.name ?? ''),
@@ -36,6 +47,7 @@
       photo: String(e?.photo ?? ''),
       caption: String(e?.caption ?? ''),
       style: styleName(e?.style) ? e.style : '',
+      group: ids.has(e?.group) ? e.group : '',
     }));
     return book;
   }
@@ -180,6 +192,10 @@
         </div>
       </div>
       <textarea id="msg-${p.id}" data-key="message" rows="4" placeholder="Their message" aria-label="Message from person ${i + 1}"></textarea>
+      ${book.groups.length ? `<div class="look">
+        <label for="grp-${p.id}">Group chat</label>
+        <select id="grp-${p.id}" data-key="group"><option value="">None: their own page</option>${book.groups.map((g) => `<option value="${esc(g.id)}">${esc(groupLabel(g))} (${esc(styleName(g.style))})</option>`).join('')}</select>
+      </div>` : ''}
       <div class="look">
         <label for="look-${p.id}">Looks like</label>
         <select id="look-${p.id}" data-key="style">${lookOptions()}</select>
@@ -195,9 +211,18 @@
     li.querySelector('[data-key="message"]').value = p.message;
     li.querySelector('[data-key="caption"]').value = p.caption;
     li.querySelector('[data-key="style"]').value = p.style;
+    if (book.groups.length) li.querySelector('[data-key="group"]').value = p.group;
+    showGroup(li, p);
     showPhoto(li.querySelector('.photo'), p.photo);
     showWarning(li, p);
     return li;
+  }
+
+  // In a group chat the group decides how the page looks.
+  function showGroup(li, p) {
+    const look = li.querySelector('[data-key="style"]');
+    look.disabled = Boolean(p.group);
+    look.title = p.group ? 'Set by their group chat' : '';
   }
 
   function showWarning(li, p) {
@@ -216,10 +241,50 @@
     return li ? { li, p: book.entries.find((x) => x.id === li.dataset.id) } : {};
   };
 
-  function updateCount() {
-    const people = book.entries.filter((e) => e.message.trim()).length;
-    const pages = people + ($('cover').checked ? 1 : 0);
+  function updateCount(pages) {
+    const writing = book.entries.filter((e) => e.message.trim());
+    if (pages === undefined) {
+      // Until the preview is drawn: one page each, one per group chat in use.
+      const groups = new Set(writing.map((e) => e.group).filter(Boolean));
+      pages = writing.filter((e) => !e.group).length + groups.size + ($('cover').checked ? 1 : 0);
+    }
+    const people = writing.length;
     $('count').textContent = `${people} ${people === 1 ? 'person' : 'people'} · ${pages} ${pages === 1 ? 'page' : 'pages'}`;
+  }
+
+  /* ---------- group chats ---------- */
+
+  function newGroupId() {
+    let k = book.groups.length + 1;
+    while (book.groups.some((g) => g.id === `g${k}`)) k++;
+    return `g${k}`;
+  }
+
+  function renderGroups() {
+    $('groups').replaceChildren(...book.groups.map((g) => {
+      const li = document.createElement('li');
+      li.className = 'group';
+      li.dataset.gid = g.id;
+      li.innerHTML = `
+        <input id="gname-${esc(g.id)}" data-gkey="name" placeholder="Group name, e.g. Design team" autocomplete="off" aria-label="Group name">
+        <select id="glook-${esc(g.id)}" data-gkey="style" aria-label="Group chat look">${optionList(GROUP_LOOKS)}</select>
+        <button type="button" data-gact="remove" aria-label="Remove this group chat" title="Remove">✕</button>
+        <p class="hint"></p>`;
+      li.querySelector('[data-gkey="name"]').value = g.name;
+      li.querySelector('[data-gkey="style"]').value = g.style;
+      return li;
+    }));
+    $('groups-empty').hidden = book.groups.length > 0;
+    updateGroupCounts();
+  }
+
+  function updateGroupCounts() {
+    for (const li of $('groups').children) {
+      const members = book.entries.filter((e) => e.group === li.dataset.gid);
+      li.querySelector('.hint').textContent = members.length
+        ? `${members.length} ${members.length === 1 ? 'person' : 'people'}: ${members.map((e) => e.name.trim() || 'no name yet').join(', ')}`
+        : 'Nobody yet. Choose this group on people\'s cards below.';
+    }
   }
 
   function changed() {
@@ -259,6 +324,11 @@
         const cap = document.createElement('figcaption');
         if (info.kind === 'cover') {
           cap.textContent = 'Cover';
+        } else if (info.group) {
+          fig.dataset.members = info.members.map((e) => e.id).join(' ');
+          const n = $('cover').checked ? info.index : info.index + 1;
+          const names = info.members.map((e) => e.name.trim() || 'No name yet').join(', ');
+          cap.textContent = `${n} · ${groupLabel(info.group)} (${styleName(info.group.style)} group) · ${names}`;
         } else {
           fig.dataset.person = info.entry.id;
           const n = $('cover').checked ? info.index : info.index + 1;
@@ -285,15 +355,17 @@
     }
     stage.remove();
     Scrapbook.scaleFrames(pages);
+    updateCount(pages.querySelectorAll('.page').length);
     markCurrent(false);
   }
 
   function markCurrent(scroll) {
     let target = null;
     for (const fig of $('pages').querySelectorAll('.page')) {
-      const on = Boolean(currentId) && fig.dataset.person === currentId;
+      const on = Boolean(currentId) &&
+        (fig.dataset.person === currentId || (fig.dataset.members || '').split(' ').includes(currentId));
       fig.classList.toggle('is-current', on);
-      if (on) target = fig;
+      if (on && !target) target = fig;
     }
     if (scroll && target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
@@ -403,6 +475,8 @@
     if (!key || !p) return;
     p[key] = ev.target.value;
     showWarning(li, p);
+    if (key === 'group') showGroup(li, p);
+    if (key === 'group' || key === 'name') updateGroupCounts();
     changed();
   });
 
@@ -438,6 +512,7 @@
       if ((p.message.trim() || p.photo) && !confirm(`Remove ${label}? This can't be undone.`)) return;
       book.entries.splice(i, 1);
       renderList();
+      updateGroupCounts();
     } else if (act === 'up' || act === 'down') {
       const j = act === 'up' ? i - 1 : i + 1;
       if (j < 0 || j >= book.entries.length) return;
@@ -466,12 +541,52 @@
     changed();
   });
 
+  // Group chats
+  const groupsEl = $('groups');
+  const findGroup = (el) => {
+    const li = el.closest('.group');
+    return li ? { li, g: book.groups.find((x) => x.id === li.dataset.gid) } : {};
+  };
+
+  groupsEl.addEventListener('input', (ev) => {
+    const key = ev.target.dataset.gkey;
+    const { g } = findGroup(ev.target);
+    if (!key || !g) return;
+    g[key] = ev.target.value;
+    renderList(); // people's group menus show the name and look
+    changed();
+  });
+
+  groupsEl.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-gact="remove"]');
+    if (!btn) return;
+    const { g } = findGroup(btn);
+    if (!g) return;
+    const members = book.entries.filter((e) => e.group === g.id);
+    if (members.length && !confirm(`Remove the group chat "${groupLabel(g)}"? Its ${members.length} ${members.length === 1 ? 'person gets their own page' : 'people get their own pages'} again.`)) return;
+    members.forEach((e) => { e.group = ''; });
+    book.groups = book.groups.filter((x) => x !== g);
+    renderGroups();
+    renderList();
+    changed();
+  });
+
+  $('add-group').addEventListener('click', () => {
+    const g = { id: newGroupId(), name: '', style: GROUP_LOOKS[0].id };
+    book.groups.push(g);
+    renderGroups();
+    renderList();
+    $('gname-' + g.id).focus();
+    changed();
+  });
+
   // Files and starting points
   function replaceBook(next) {
     book = next;
     if (!book.entries.length) book.entries.push(blankPerson());
     currentId = null;
     fillCover();
+    renderGroups();
     renderList();
     changed();
     renderPreview();
@@ -521,6 +636,7 @@
     book = saved && Array.isArray(saved.entries) ? normalise(saved) : blankBook();
     if (!book.entries.length) book.entries.push(blankPerson());
     fillCover();
+    renderGroups();
     renderList();
     updateCount();
     renderPreview();
