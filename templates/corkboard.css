@@ -1,4 +1,4 @@
-/* Corkboard */
+/* Corkboard: one big sticky note per person, pinned to cork */
 .tpl-corkboard {
   --ink: #1e1e22;
   --marker: #1d2a5c;
@@ -14,14 +14,14 @@
     inset 0 0 5mm 9mm rgba(40, 20, 0, 0.28);
   color: var(--ink);
   font-family: 'Gochi Hand', 'Comic Sans MS', cursive;
-  padding: 16mm 17mm 13mm;
+  padding: 16mm 18mm 15mm;
   display: flex;
   flex-direction: column;
 }
 
 .tpl-corkboard .page-head {
   align-self: center;
-  margin-bottom: 7mm;
+  margin-bottom: 9mm;
 }
 .tpl-corkboard .page-title {
   position: relative;
@@ -43,33 +43,24 @@
   color: #f3dcbc;
 }
 
-.tpl-corkboard .entries {
+.tpl-corkboard .page-body {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(3, minmax(0, 1fr));
-  grid-auto-flow: row dense;
-  gap: 9mm 9mm;
+  display: flex;
+  flex-direction: column;
 }
-
-.tpl-corkboard .entry--wide { grid-column: 1 / -1; }
-.tpl-corkboard .entry--tall { grid-row: span 2; }
 
 .tpl-corkboard .cb-entry {
-  display: flex;
-  align-items: center;
-  gap: 8mm;
+  flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Sticky note */
+/* Sticky note: one big note per person */
 .tpl-corkboard .cb-note {
   --note: #fff27a;
   position: relative;
-  align-self: stretch;
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
   padding: 10mm 7mm 5mm;
@@ -82,38 +73,34 @@
 .tpl-corkboard .n3 { --note: #c8eb9b; }
 .tpl-corkboard .n4 { --note: #ffcb8e; }
 
-/* Ruled index card for longer messages; text sits on the 7mm rules */
+.tpl-corkboard .cb-entry > .cb-note {
+  flex: 1;
+  min-height: 0;
+  padding: 20mm 16mm 12mm;
+  box-shadow: 0 0.4mm 0.6mm rgba(0, 0, 0, 0.18), 1.5mm 3.2mm 3.4mm -1.6mm rgba(40, 20, 0, 0.5);
+}
+.tpl-corkboard .cb-entry.has-photo > .cb-note { padding-top: 26mm; }
+.tpl-corkboard .cb-entry > .cb-note > .cb-pin { top: 5mm; width: 8mm; height: 8mm; }
+
+/* Ruled index card (used on the cover) */
 .tpl-corkboard .cb-card {
-  --line: 8mm;
-  --pad: 14mm;
-  --base: 5.8mm; /* baseline depth inside one line (measured for Gochi Hand 17pt); the rule sits just under it */
-  padding: var(--pad) 9mm 5mm;
+  padding: 14mm 9mm 5mm;
   background:
     linear-gradient(#e2737d, #e2737d) 0 9.5mm / 100% 0.35mm no-repeat,
-    repeating-linear-gradient(to bottom, transparent 0 calc(var(--line) - 0.3mm), #a9c6e4 calc(var(--line) - 0.3mm) var(--line))
-      0 calc(var(--pad) + var(--base) + 0.7mm - var(--line)) / 100% 100% no-repeat,
+    repeating-linear-gradient(to bottom, transparent 0 7.7mm, #a9c6e4 7.7mm 8mm) 0 12.5mm / 100% 100% no-repeat,
     #fffefb;
 }
-.tpl-corkboard .cb-card .entry-message { font-size: calc(17pt * var(--fit, 1)); line-height: var(--line); }
-.tpl-corkboard .cb-card .entry-message p + p { margin-top: 0; text-indent: 6mm; }
 
 .tpl-corkboard .entry-message {
   flex: 1;
-  font-size: calc(19pt * var(--fit, 1));
-  line-height: 1.14;
-}
-
-/* Blank sticky note for a late, handwritten message */
-.tpl-corkboard .cb-blank .entry-message {
-  font-size: 13pt;
-  color: rgba(30, 30, 34, 0.35);
-  background: repeating-linear-gradient(to bottom, transparent 0 8.6mm, rgba(30, 30, 34, 0.16) 8.6mm 8.85mm);
+  font-size: calc(26pt * var(--fit, 1));
+  line-height: 1.15;
 }
 
 .tpl-corkboard .entry-name {
-  padding-top: 2mm;
+  padding-top: 5mm;
   text-align: right;
-  font: 400 12.5pt/1.1 'Permanent Marker', cursive;
+  font: 400 19pt/1.1 'Permanent Marker', cursive;
   color: var(--marker);
 }
 .tpl-corkboard .entry-name::before { content: '— '; }
@@ -163,6 +150,18 @@
   font: 400 12pt/1 'Gochi Hand', cursive;
   text-align: center;
 }
+
+/* A person's photo is pinned above their note, overlapping its top edge */
+.tpl-corkboard .cb-entry > .cb-polaroid {
+  align-self: flex-start;
+  width: 84mm;
+  padding: 5mm 5mm 0;
+  margin: 0 0 -18mm 10mm;
+  rotate: -3deg;
+  z-index: 3;
+}
+.tpl-corkboard .cb-entry.cb-flip > .cb-polaroid { align-self: flex-end; margin: 0 10mm -18mm 0; rotate: 3deg; }
+.tpl-corkboard .cb-entry > .cb-polaroid figcaption { height: 14mm; font-size: 16pt; }
 
 /* Cover */
 .tpl-corkboard .cb-cover {

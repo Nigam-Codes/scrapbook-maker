@@ -1,4 +1,4 @@
-/* Airmail: every message is a postcard with its own stamp and postmark. */
+/* Airmail: each person's message is a typed airmail letter with its own stamp and postmark. */
 (function () {
   let uid = 0;
 
@@ -42,20 +42,14 @@
     id: 'airmail',
     name: 'Airmail',
     bestFor: 'Farewells, moves abroad, long-distance friends.',
-    description: 'Every message arrives as a typed postcard with its own stamp and postmark. Photos are printed as large stamps, and long messages become full-page letters.',
+    description: "Each person's message is a typed airmail letter on blue onionskin, inside a striped airmail border, with its own stamp and postmark.",
     facts: {
-      'Per page': '2 postcards',
-      'Long messages': 'A full-page airmail letter',
-      Photos: 'Printed as an oversized stamp',
-      'Last page': 'A spare slot becomes a blank postcard to write by hand',
+      'Each page': 'A typed letter, addressed to the recipient',
+      Name: 'Signed by hand at the bottom',
+      Photo: 'A print tucked in above the letter',
     },
-    layout: { mode: 'units', capacity: 2 },
     fonts: ['Special Elite', 'Caveat:wght@400;700', 'Courier Prime:wght@400;700'],
     fontFaces: ['400 12px "Special Elite"', '400 16px Caveat', '700 16px Caveat', '400 10px "Courier Prime"', '700 10px "Courier Prime"'],
-
-    weight(e) {
-      return Scrapbook.util.length(e) > 560 ? 2 : 1;
-    },
 
     pageHead({ book, u }) {
       return `<span class="am-label">Par avion</span><span class="page-title">${u.esc(book.title)}</span>`;
@@ -65,41 +59,23 @@
       return `No. ${String(n).padStart(2, '0')}`;
     },
 
-    entry(e, { i, w }, { book, u }) {
+    entry(e, { i, n }, { book, u }) {
       const [top, bottom] = dateParts(book, u);
-      return `<article class="entry am-card c${i % 4}${w >= 2 ? ' am-card--letter' : ''}">
-        <div class="am-text">
-          ${w >= 2 ? '<p class="am-letter-head"><span class="am-label">Par avion · By air mail</span></p>' : ''}
-          <div class="entry-message" data-fit>${u.paragraphs(e.message)}</div>
-          <p class="entry-name">${u.esc(e.name)}</p>
-        </div>
-        <div class="am-side">
-          ${stamp(u, { photo: e.photo, letter: u.initial(e.name), no: `No. ${u.pad(i + 1)}` })}
-          ${postmark(ringText(book, u), top, bottom, u)}
-          ${e.photo && e.caption ? `<p class="am-caption">${u.esc(e.caption)}</p>` : ''}
+      return `<article class="entry am-letter c${i % 4}">
+        <div class="am-top">
           <div class="am-address">
             <span class="am-to">To</span>
             <p>${u.esc(book.recipient || book.title)}</p>
             <p>${u.esc(book.place || '')}</p>
           </div>
-        </div>
-      </article>`;
-    },
-
-    blank(_, { book, u }) {
-      return `<article class="entry am-card am-blank">
-        <div class="am-text">
-          <div class="entry-message"><p>Your postcard to ${u.esc(book.recipient || 'them')}</p></div>
-          <p class="entry-name">&nbsp;</p>
-        </div>
-        <div class="am-side">
-          <div class="am-stamp-box">Stamp</div>
-          <div class="am-address">
-            <span class="am-to">To</span>
-            <p>${u.esc(book.recipient || book.title)}</p>
-            <p>${u.esc(book.place || '')}</p>
+          <div class="am-franking">
+            ${stamp(u, { letter: u.initial(e.name), no: `No. ${u.pad(n)}` })}
+            ${postmark(ringText(book, u), top, bottom, u)}
           </div>
         </div>
+        ${e.photo ? `<figure class="am-snap"><img src="${u.esc(e.photo)}" alt="">${e.caption ? `<figcaption>${u.esc(e.caption)}</figcaption>` : ''}</figure>` : ''}
+        <div class="entry-message" data-fit="2">${u.paragraphs(e.message)}</div>
+        <p class="entry-name">${u.esc(e.name)}</p>
       </article>`;
     },
 
@@ -123,7 +99,7 @@
             </div>
           </div>
         </div>
-        <p class="am-cover-meta">${count} postcards · ${u.esc(u.formatDate(book.date))}</p>
+        <p class="am-cover-meta">${count} letters · ${u.esc(u.formatDate(book.date))}</p>
       </div>`;
     },
   });

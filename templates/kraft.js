@@ -1,6 +1,6 @@
-/* Kraft & Washi: notes on mixed papers taped to kraft card, names on label-maker tape. */
+/* Kraft & Washi: each person's message on its own scrap of paper, taped to kraft card. */
 (function () {
-  const ROT = [-1.4, 1.1, -0.5, 1.6, -1, 0.6];
+  const ROT = [-0.9, 0.7, -0.4, 1, -0.7, 0.5];
 
   function polaroid(u, src, caption, cls = '') {
     return `<figure class="k-polaroid ${cls}">
@@ -14,45 +14,26 @@
     id: 'kraft',
     name: 'Kraft & Washi',
     bestFor: 'Any occasion. The classic hand-made scrapbook.',
-    description: 'Each message is a note on its own scrap of paper, taped onto kraft card. Names are punched out on label-maker tape and photos become polaroids.',
+    description: "Each person's message is a big note on its own scrap of paper, washi-taped onto kraft card. Their name is punched out on label-maker tape.",
     facts: {
-      'Per page': 'Up to 6 notes in a 2 × 3 grid',
-      'Long messages': 'Take a full row, or two rows if very long',
-      Photos: 'Taped-down polaroid beside the note',
-      'Last page': 'Spare cells become blank notes to fill in by hand',
+      'Each page': 'One note on dot-grid, graph or coloured paper (it varies by person)',
+      Name: 'Label-maker tape',
+      Photo: 'A taped-down polaroid above the note',
     },
-    layout: { mode: 'units', capacity: 6 },
     fonts: ['Caveat:wght@400;700', 'Courier Prime:wght@700'],
     fontFaces: ['400 16px Caveat', '700 16px Caveat', '700 12px "Courier Prime"'],
 
-    weight(e) {
-      const n = Scrapbook.util.length(e);
-      if (n > 480) return 4;
-      return e.photo || n > 210 ? 2 : 1;
+    pageHead({ book, u }, n) {
+      return `<span class="page-title">${u.esc(book.title)}</span><span class="k-dymo">No. ${u.pad(n)}</span>`;
     },
 
-    pageHead({ book, u }) {
-      return `<span class="page-title">${u.esc(book.title)}</span>`;
-    },
-
-    entry(e, { i, w }, { u }) {
-      const size = w >= 4 ? ' entry--wide entry--tall' : w >= 2 ? ' entry--wide' : '';
-      return `<article class="entry k-entry v${i % 4}${size}${e.photo ? ' has-photo' : ''}" style="--r:${ROT[i % ROT.length]}deg">
+    entry(e, { i }, { u }) {
+      return `<article class="entry k-entry v${i % 4}${e.photo ? ' has-photo' : ''}${i % 2 ? ' k-flip' : ''}" style="--r:${ROT[i % ROT.length]}deg">
         ${e.photo ? polaroid(u, e.photo, e.caption) : ''}
         <div class="k-card">
           <span class="k-tape"></span>
-          <div class="entry-message" data-fit>${u.paragraphs(e.message)}</div>
+          <div class="entry-message" data-fit="2.4">${u.paragraphs(e.message)}</div>
           <p class="entry-name"><span class="k-dymo">${u.esc(e.name)}</span></p>
-        </div>
-      </article>`;
-    },
-
-    blank({ i }) {
-      return `<article class="entry k-entry k-blank v${i % 4}" style="--r:${ROT[i % ROT.length]}deg">
-        <div class="k-card">
-          <span class="k-tape"></span>
-          <div class="entry-message"><p>Room for one more note</p></div>
-          <p class="entry-name"><span class="k-dymo">&nbsp;</span></p>
         </div>
       </article>`;
     },

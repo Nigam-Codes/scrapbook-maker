@@ -1,6 +1,6 @@
-/* Corkboard: sticky notes and index cards pinned to a framed cork board. */
+/* Corkboard: one big sticky note per person, pinned to a framed cork board. */
 (function () {
-  const ROT = [-2, 1.5, -0.8, 2.2, -1.6, 0.9];
+  const ROT = [-1.2, 0.9, -0.5, 1.3, -0.9, 0.6];
 
   const pin = (k) => `<span class="cb-pin p${k % 4}"></span>`;
 
@@ -8,22 +8,14 @@
     id: 'corkboard',
     name: 'Corkboard',
     bestFor: 'Office farewells, team thank-yous, big groups with short notes.',
-    description: 'Short messages go on sticky notes, longer ones on ruled index cards, all pinned to a framed cork board. Good when lots of people each write a line or two.',
+    description: "Each person's message is written on a big sticky note and pinned to a framed cork board, with the note colour changing from page to page.",
     facts: {
-      'Per page': 'Up to 6 sticky notes',
-      'Long messages': 'Ruled index card across the row (or two rows)',
-      Photos: 'Pinned polaroid beside the note',
-      'Last page': 'Spare cells become blank sticky notes to fill in by hand',
+      'Each page': 'One big sticky note, pinned to a framed cork board (colour varies by person)',
+      Name: 'Signed in marker',
+      Photo: 'A polaroid pinned above the note',
     },
-    layout: { mode: 'units', capacity: 6 },
     fonts: ['Gochi Hand', 'Permanent Marker'],
     fontFaces: ['400 16px "Gochi Hand"', '400 16px "Permanent Marker"'],
-
-    weight(e) {
-      const n = Scrapbook.util.length(e);
-      if (n > 320) return 4;
-      return e.photo || n > 190 ? 2 : 1;
-    },
 
     pageHead({ book, u }) {
       return `<span class="page-title">${pin(0)}${u.esc(book.title)}</span>`;
@@ -33,25 +25,13 @@
       return `p. ${n}`;
     },
 
-    entry(e, { i, w }, { u }) {
-      const size = w >= 4 ? ' entry--wide entry--tall' : w >= 2 ? ' entry--wide' : '';
-      const card = w >= 2 && !e.photo;
-      return `<article class="entry cb-entry${size}" style="--r:${ROT[i % ROT.length]}deg">
+    entry(e, { i }, { u }) {
+      return `<article class="entry cb-entry${e.photo ? ' has-photo' : ''}${i % 2 ? ' cb-flip' : ''}" style="--r:${ROT[i % ROT.length]}deg">
         ${e.photo ? `<figure class="cb-polaroid">${pin(i + 1)}<img src="${u.esc(e.photo)}" alt=""><figcaption>${u.esc(e.caption || '')}</figcaption></figure>` : ''}
-        <div class="cb-note ${card ? 'cb-card' : 'n' + (i % 5)}">
-          ${pin(i)}${card ? pin(i + 2) : ''}
-          <div class="entry-message" data-fit>${u.paragraphs(e.message)}</div>
-          <p class="entry-name">${u.esc(e.name)}</p>
-        </div>
-      </article>`;
-    },
-
-    blank({ i }) {
-      return `<article class="entry cb-entry cb-blank" style="--r:${ROT[i % ROT.length]}deg">
         <div class="cb-note n${i % 5}">
           ${pin(i)}
-          <div class="entry-message"><p>Your note here</p></div>
-          <p class="entry-name">&nbsp;</p>
+          <div class="entry-message" data-fit="2.4">${u.paragraphs(e.message)}</div>
+          <p class="entry-name">${u.esc(e.name)}</p>
         </div>
       </article>`;
     },

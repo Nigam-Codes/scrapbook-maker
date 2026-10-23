@@ -1,4 +1,4 @@
-/* Keepsake */
+/* Keepsake: one message per page, like fine stationery */
 .tpl-keepsake {
   --paper: #faf8f3;
   --ink: #1f3a32;
@@ -8,7 +8,7 @@
   background: var(--paper);
   color: var(--ink);
   font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
-  padding: 26mm 28mm 20mm;
+  padding: 30mm 30mm 22mm;
   display: flex;
   flex-direction: column;
   text-align: center;
@@ -53,32 +53,28 @@
   margin-top: 4mm;
 }
 
-.tpl-keepsake .entries {
+.tpl-keepsake .page-body {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
+/* One message per page, centred like a printed card */
 .tpl-keepsake .ks-entry {
-  flex: 1 1 0;
+  flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6mm;
-  padding: 6mm 0;
-}
-
-.tpl-keepsake .ks-entry + .ks-entry {
-  background: var(--sprig) top center / 36mm 6mm no-repeat;
+  gap: 8mm;
 }
 
 .tpl-keepsake .entry-message {
   flex: 0 1 auto;
-  max-width: 128mm;
-  font-size: calc(19pt * var(--fit, 1));
+  max-width: 132mm;
+  font-size: calc(21pt * var(--fit, 1));
   font-style: italic;
   font-weight: 400;
   line-height: 1.42;
@@ -90,15 +86,15 @@
 .tpl-keepsake .entry-name {
   display: flex;
   align-items: center;
-  gap: 4mm;
-  font: 600 12pt/1 'Cormorant SC', 'Cormorant Garamond', serif;
+  gap: 5mm;
+  font: 600 14pt/1 'Cormorant SC', 'Cormorant Garamond', serif;
   letter-spacing: 0.24em;
   color: var(--ink);
 }
 .tpl-keepsake .entry-name::before,
 .tpl-keepsake .entry-name::after {
   content: '';
-  width: 12mm;
+  width: 14mm;
   height: 0.25mm;
   background: var(--gold);
 }
@@ -107,7 +103,7 @@
 .tpl-keepsake .ks-photo {
   flex: 0 1 auto;
   min-height: 0;
-  width: 66mm;
+  width: 78mm;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -117,30 +113,14 @@
   width: 100%;
   aspect-ratio: 4 / 5;
   object-fit: cover;
-  border-radius: 33mm 33mm 0 0;
+  border-radius: 39mm 39mm 0 0;
   outline: 0.3mm solid var(--gold);
   outline-offset: 2mm;
 }
 .tpl-keepsake .ks-photo figcaption {
   margin-top: 2mm;
-  font: italic 400 12.5pt/1.2 'Cormorant Garamond', serif;
+  font: italic 400 13pt/1.2 'Cormorant Garamond', serif;
   color: var(--soft);
-}
-
-/* Blank half for a late, handwritten message */
-.tpl-keepsake .ks-prompt {
-  font: italic 400 13pt/1 'Cormorant Garamond', serif;
-  color: var(--gold);
-}
-.tpl-keepsake .ks-lines {
-  width: 118mm;
-  height: 40mm;
-  background: repeating-linear-gradient(to bottom, transparent 0 9.8mm, rgba(166, 138, 85, 0.55) 9.8mm 10mm);
-}
-.tpl-keepsake .ks-sign {
-  width: 40mm;
-  height: 0.25mm;
-  background: var(--gold);
 }
 
 /* Cover */

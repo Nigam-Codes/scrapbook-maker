@@ -82,6 +82,7 @@
         <option value="letter">US Letter</option>
       </select>
     </label>
+    <label><input id="cover" type="checkbox" checked> Cover page</label>
     <label class="file">Load messages (.json)<input id="file" type="file" accept=".json,application/json"></label>
     <button class="print" id="print" type="button">Print / Save as PDF</button>
     <p class="hint">In the print dialog, set margins to <b>None</b> and turn on <b>Background graphics</b>. <span class="status" id="status"></span></p>
@@ -115,6 +116,7 @@
       pages.replaceChildren();
       await Scrapbook.render(book, id, {
         paper: paper.id,
+        cover: $('cover').checked,
         place: (sheet) => {
           if (mine !== run) return;
           const f = Scrapbook.frame(paper);
@@ -129,6 +131,7 @@
 
     $('template').addEventListener('change', draw);
     $('paper').addEventListener('change', draw);
+    $('cover').addEventListener('change', draw);
     $('print').addEventListener('click', () => window.print());
     $('file').addEventListener('change', async (ev) => {
       const file = ev.target.files[0];

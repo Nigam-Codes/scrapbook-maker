@@ -1,4 +1,4 @@
-/* Notebook: wide-ruled school paper. Each person writes in their own pen and hand, on the lines. */
+/* Notebook: one wide-ruled page per person, written on the lines in their own pen and hand. */
 (function () {
   const DOODLES = [
     // star
@@ -20,13 +20,12 @@
     id: 'notebook',
     name: 'Notebook',
     bestFor: 'Teachers, classmates, kids, casual groups.',
-    description: 'Wide-ruled school paper with a red margin and punched holes. Every message is written on the lines in a different pen and hand, with the name highlighted and a doodle beside it.',
+    description: "Wide-ruled school paper with a red margin and punched holes. Each person's page is written on the lines in a different pen and hand, with their name highlighted and a doodle beside it.",
     facts: {
-      'Per page': 'As many as fit; messages flow down the page',
-      'Long messages': 'Simply take more lines',
-      Photos: 'Taped in, with the writing wrapping around',
+      'Each page': 'A wide-ruled notebook page, written on the lines in its own pen and hand',
+      Name: 'Highlighted, with a doodle beside it',
+      Photo: 'Taped in, with the writing wrapping around it',
     },
-    layout: { mode: 'flow' },
     fonts: ['Kalam:wght@400;700', 'Caveat:wght@400;700', 'Gochi Hand'],
     fontFaces: ['400 16px Kalam', '700 16px Kalam', '400 16px Caveat', '700 16px Caveat', '400 16px "Gochi Hand"'],
 
@@ -39,7 +38,7 @@
     },
 
     entry(e, { i }, { u }) {
-      return `<article class="entry nb-entry hand${i % 3} ink${i % 5}">
+      return `<article class="entry nb-entry hand${i % 3} ink${i % 5}" data-fit="1.3">
         ${e.photo ? `<figure class="nb-photo"><img src="${u.esc(e.photo)}" alt="">${e.caption ? `<figcaption>${u.esc(e.caption)}</figcaption>` : ''}</figure>` : ''}
         <p class="entry-name"><mark>${u.esc(e.name)}</mark>${doodle(i)}</p>
         <div class="entry-message">${u.paragraphs(e.message)}</div>

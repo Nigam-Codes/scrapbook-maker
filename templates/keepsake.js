@@ -1,4 +1,4 @@
-/* Keepsake: fine stationery. Centred serif type, gilt rules, dates written out in words. */
+/* Keepsake: one message per page, like fine stationery. Gilt rules, centred serif type, dates in words. */
 (function () {
   const ROMAN = [['m', 1000], ['cm', 900], ['d', 500], ['cd', 400], ['c', 100], ['xc', 90],
     ['l', 50], ['xl', 40], ['x', 10], ['ix', 9], ['v', 5], ['iv', 4], ['i', 1]];
@@ -12,21 +12,15 @@
     id: 'keepsake',
     name: 'Keepsake',
     bestFor: 'Weddings, retirements, memorials, milestone birthdays.',
-    description: 'Fine stationery: centred serif type in bottle-green ink, gilt rules, photos in arched frames, and the date written out in words, as on an invitation.',
+    description: "Fine stationery: each person's message is centred on its own page in bottle-green serif type inside a double gilt rule. The cover writes the date out in words, as on an invitation.",
     facts: {
-      'Per page': '2 messages, separated by a sprig',
-      'Long messages': 'A page of their own',
-      Photos: 'Arched frame, one message per page',
-      'Last page': 'A spare half becomes ruled lines for a handwritten message',
+      'Each page': 'One message, centred, in bottle-green italic',
+      Name: 'Small capitals between gilt rules, under a sprig',
+      Photo: 'In an arched frame above the message',
     },
-    layout: { mode: 'units', capacity: 2 },
     fonts: ['Cormorant Garamond:ital,wght@0,300;0,500;1,300;1,400', 'Cormorant SC:wght@500;600'],
     fontFaces: ['300 16px "Cormorant Garamond"', '500 16px "Cormorant Garamond"', 'italic 300 16px "Cormorant Garamond"',
       'italic 400 16px "Cormorant Garamond"', '500 16px "Cormorant SC"', '600 16px "Cormorant SC"'],
-
-    weight(e) {
-      return e.photo || Scrapbook.util.length(e) > 480 ? 2 : 1;
-    },
 
     pageHead({ book, u }) {
       return `<span class="ks-mono">${u.esc(u.initial(book.recipient || book.title))}</span>`;
@@ -36,19 +30,12 @@
       return roman(n);
     },
 
-    entry(e, { w }, { u }) {
-      return `<article class="entry ks-entry${w >= 2 ? ' ks-entry--full' : ''}">
+    entry(e, _, { u }) {
+      return `<article class="entry ks-entry">
         ${e.photo ? `<figure class="ks-photo"><img src="${u.esc(e.photo)}" alt="">${e.caption ? `<figcaption>${u.esc(e.caption)}</figcaption>` : ''}</figure>` : ''}
-        <div class="entry-message" data-fit>${u.paragraphs(e.message)}</div>
+        <div class="entry-message" data-fit="1.8">${u.paragraphs(e.message)}</div>
+        <span class="ks-sprig" aria-hidden="true"></span>
         <p class="entry-name">${u.esc(e.name)}</p>
-      </article>`;
-    },
-
-    blank() {
-      return `<article class="entry ks-entry ks-blank">
-        <p class="ks-prompt">A few words of your own</p>
-        <div class="ks-lines" aria-hidden="true"></div>
-        <p class="entry-name"><span class="ks-sign"></span></p>
       </article>`;
     },
 

@@ -32,46 +32,29 @@
     id: 'riso',
     name: 'Riso Zine',
     bestFor: 'Birthdays, celebrations, friend groups.',
-    description: 'A two-colour risograph zine in fluorescent pink and blue. Names print huge with the inks slightly out of register, and photos come out as blue duotones.',
+    description: "A two-colour risograph zine in fluorescent pink and blue. Each person gets a page with their name printed huge, the inks slightly out of register, and photos come out as blue duotones.",
     facts: {
-      'Per page': '3 messages as full-width bands',
-      'Long messages': 'Double band, set in two columns',
-      Photos: 'Blue duotone with pink halftone',
-      'Last page': 'Spare bands become blank ones to fill in by hand',
+      'Each page': "The person's name printed huge across the top, their message below",
+      Name: 'Pink and blue inks overprinted, slightly out of register',
+      Photo: 'A wide blue duotone with pink halftone',
     },
-    layout: { mode: 'units', capacity: 3 },
     fonts: ['Bricolage Grotesque:opsz,wdth,wght@12..96,75..100,400..800', 'DM Mono:wght@400;500'],
     fontFaces: ['800 40px "Bricolage Grotesque"', '400 12px "DM Mono"', '500 12px "DM Mono"'],
 
-    weight(e) {
-      return Scrapbook.util.length(e) > 440 ? 2 : 1;
-    },
-
-    pageHead({ book, u }) {
-      return `<span>Issue 01</span><span class="page-title">${u.esc(book.title)}</span><span>${u.esc(u.formatDate(book.date, 'dots'))}</span>`;
+    pageHead({ book, u }, n) {
+      return `<span>Issue 01</span><span class="page-title">${u.esc(book.title)}</span><span>No. ${u.pad(n)}</span>`;
     },
 
     folio(n) {
       return inks(`P.${String(n).padStart(2, '0')}`);
     },
 
-    entry(e, { i, w }, { u }) {
-      const cls = ['entry', 'rz-entry', i % 2 ? 'rz-entry--flip' : '', w >= 2 ? 'rz-entry--long' : '', e.photo ? 'has-photo' : '']
-        .filter(Boolean).join(' ');
-      return `<article class="${cls}">
-        <h2 class="rz-name"><span class="rz-fit" data-fit-line="64">${inks(u.esc(e.name))}</span></h2>
-        ${e.photo
-          ? `<figure class="rz-photo"><img src="${u.esc(e.photo)}" alt=""></figure>`
-          : `<span class="rz-dot rz-dot--${i % 3}" aria-hidden="true"></span>`}
-        <div class="entry-message" data-fit>${u.paragraphs(e.message)}</div>
-      </article>`;
-    },
-
-    blank({ i }) {
-      return `<article class="entry rz-entry rz-blank${i % 2 ? ' rz-entry--flip' : ''}">
-        <h2 class="rz-name"><span class="rz-fit" data-fit-line="64"><span class="rz-a">Your name</span></span></h2>
+    entry(e, { i }, { u }) {
+      return `<article class="entry rz-entry${i % 2 ? ' rz-flip' : ''}">
         <span class="rz-dot rz-dot--${i % 3}" aria-hidden="true"></span>
-        <div class="entry-message" aria-hidden="true"></div>
+        <h2 class="rz-name"><span class="rz-fit" data-fit-line="260">${inks(u.esc(e.name))}</span></h2>
+        ${e.photo ? `<figure class="rz-photo"><img src="${u.esc(e.photo)}" alt=""></figure>` : ''}
+        <div class="entry-message" data-fit="2.2">${u.paragraphs(e.message)}</div>
       </article>`;
     },
 

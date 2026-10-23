@@ -1,4 +1,4 @@
-/* Notebook: wide-ruled (8.7 mm) paper. Every vertical measure inside the
+/* Notebook: one wide-ruled (8.7 mm) page per person. Every vertical measure inside the
    writing area is a multiple of --rule so handwriting stays on the lines. */
 .tpl-notebook {
   --rule: 8.7mm;
@@ -48,7 +48,7 @@
   color: #2a2a2a;
 }
 
-.tpl-notebook .entries {
+.tpl-notebook .page-body {
   position: absolute;
   top: var(--top);
   left: calc(var(--margin-x) + 4mm);
@@ -69,16 +69,16 @@
 .tpl-notebook .nb-entry {
   position: relative;
   display: flow-root;
-  margin-bottom: var(--rule);
+  height: 100%;
+  overflow: hidden;
   line-height: var(--rule);
-  font-size: 14pt;
 }
 
 /* Different hands and pens, so each message looks written by its own person */
 /* Each hand has its own baseline depth; nudge so writing sits just above the rule */
-.tpl-notebook .hand0 { font-family: Kalam, cursive; font-size: 15pt; top: -0.27mm; }
-.tpl-notebook .hand1 { font-family: Caveat, cursive; font-size: 21pt; top: -0.79mm; }
-.tpl-notebook .hand2 { font-family: 'Gochi Hand', cursive; font-size: 17.5pt; top: -0.53mm; }
+.tpl-notebook .hand0 { font-family: Kalam, cursive; font-size: calc(15pt * var(--fit, 1)); top: -0.27mm; }
+.tpl-notebook .hand1 { font-family: Caveat, cursive; font-size: calc(21pt * var(--fit, 1)); top: -0.79mm; }
+.tpl-notebook .hand2 { font-family: 'Gochi Hand', cursive; font-size: calc(17.5pt * var(--fit, 1)); top: -0.53mm; }
 .tpl-notebook .ink0 { color: #1d3c8f; }
 .tpl-notebook .ink1 { color: #2b2b2b; }
 .tpl-notebook .ink2 { color: #6b2fa3; }
@@ -116,13 +116,13 @@
   text-indent: 8mm;
 }
 
-/* Taped-in photo: exactly five lines tall */
+/* Taped-in photo: exactly seven lines tall, so the writing wraps on the rules */
 .tpl-notebook .nb-photo {
   position: relative;
   float: right;
-  width: 42mm;
-  height: calc(var(--rule) * 5);
-  margin-left: 6mm;
+  width: 62mm;
+  height: calc(var(--rule) * 7);
+  margin: var(--rule) 0 0 6mm;
   padding: 2.5mm 2.5mm 0;
   background: #fff;
   box-shadow: 0 0.5mm 1.2mm rgba(0, 0, 0, 0.25);
@@ -149,8 +149,8 @@
   object-fit: cover;
 }
 .tpl-notebook .nb-photo figcaption {
-  height: 7mm;
-  font: 400 10pt/7mm Kalam, cursive;
+  height: 9mm;
+  font: 400 12pt/9mm Kalam, cursive;
   color: #2b2b2b;
   text-align: center;
   white-space: nowrap;

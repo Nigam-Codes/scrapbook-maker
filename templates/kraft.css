@@ -1,4 +1,4 @@
-/* Kraft & Washi */
+/* Kraft & Washi: one taped-down note per page */
 .tpl-kraft {
   --kraft: #c49a6c;
   --ink: #24304f;
@@ -14,59 +14,56 @@
   background-position: 0 0, 1.3mm 2mm, 4mm 1mm, 0 0, 0 0;
   color: var(--ink);
   font-family: Caveat, 'Segoe Print', 'Bradley Hand', cursive;
-  padding: 13mm 14mm 10mm;
+  padding: 14mm 16mm 11mm;
   display: flex;
   flex-direction: column;
 }
 
 .tpl-kraft .page-head {
-  font: 700 17pt/1 Caveat, cursive;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6mm;
+  margin-bottom: 10mm;
+  font: 700 20pt/1 Caveat, cursive;
   color: var(--chalk);
-  margin-bottom: 7mm;
-  rotate: -1.2deg;
 }
+.tpl-kraft .page-head .page-title { rotate: -1.5deg; }
 
 .tpl-kraft .folio {
-  font: 700 13pt/1 Caveat, cursive;
+  margin-top: 6mm;
+  font: 700 14pt/1 Caveat, cursive;
   color: var(--chalk);
   text-align: center;
-  margin-top: 5mm;
 }
 
-.tpl-kraft .entries {
+.tpl-kraft .page-body {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(3, minmax(0, 1fr));
-  grid-auto-flow: row dense;
-  gap: 9mm 8mm;
+  display: flex;
+  flex-direction: column;
 }
 
-.tpl-kraft .entry--wide { grid-column: 1 / -1; }
-.tpl-kraft .entry--tall { grid-row: span 2; }
-
 .tpl-kraft .k-entry {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8mm;
+  flex: 1;
   min-height: 0;
-  rotate: var(--r);
+  display: flex;
+  flex-direction: column;
 }
 
 /* The note card, on four kinds of paper */
 .tpl-kraft .k-card {
   position: relative;
-  align-self: stretch;
   flex: 1;
-  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 9mm 7mm 5.5mm;
+  padding: 18mm 16mm 12mm;
   background: #fffdf8;
-  box-shadow: 0 0.7mm 1.4mm rgba(60, 35, 10, 0.35);
+  box-shadow: 0 0.8mm 1.8mm rgba(60, 35, 10, 0.35);
+  rotate: var(--r);
 }
+.tpl-kraft .has-photo .k-card { padding-top: 24mm; }
 
 .tpl-kraft .v0 .k-card {
   background: radial-gradient(circle, #cdc6ba 0.26mm, transparent 0.32mm) 2.5mm 2.5mm / 5mm 5mm, #fffef9;
@@ -82,22 +79,15 @@
 
 .tpl-kraft .entry-message {
   flex: 1;
-  font-size: calc(21pt * var(--fit, 1));
-  line-height: 1.12;
+  font-size: calc(26pt * var(--fit, 1));
+  line-height: 1.15;
 }
-
-/* Blank note for a late, handwritten message */
-.tpl-kraft .k-blank .entry-message {
-  font-size: 15pt;
-  color: rgba(36, 48, 79, 0.38);
-  background: repeating-linear-gradient(to bottom, transparent 0 8.6mm, rgba(36, 48, 79, 0.22) 8.6mm 8.85mm);
-}
-.tpl-kraft .k-blank .k-dymo { min-width: 26mm; }
 
 .tpl-kraft .entry-name {
-  padding-top: 3mm;
+  padding-top: 5mm;
   text-align: right;
 }
+.tpl-kraft .entry-name .k-dymo { font-size: 13pt; padding: 2.2mm 4.2mm 2mm; }
 
 /* Label-maker tape: real Dymo colours */
 .tpl-kraft .k-dymo {
@@ -122,10 +112,10 @@
 .tpl-kraft .k-tape {
   --tape: repeating-linear-gradient(-45deg, #9fd3c7 0 2mm, #c9e9e0 2mm 4mm);
   position: absolute;
-  top: -3.5mm;
+  top: -5mm;
   left: 50%;
-  width: 30mm;
-  height: 8mm;
+  width: 46mm;
+  height: 11mm;
   translate: -50% 0;
   rotate: -4deg;
   background: var(--tape);
@@ -169,6 +159,17 @@
 }
 .tpl-kraft .k-polaroid .k-tape--l { left: 2mm; rotate: -38deg; translate: -30% 0; }
 .tpl-kraft .k-polaroid .k-tape--r { left: auto; right: 2mm; rotate: 38deg; translate: 30% 0; }
+
+/* A person's photo sits above their note, overlapping its top edge */
+.tpl-kraft .k-entry > .k-polaroid {
+  align-self: flex-start;
+  width: 88mm;
+  padding: 5mm 5mm 0;
+  margin: 0 0 -18mm 10mm;
+  z-index: 3;
+}
+.tpl-kraft .k-entry.k-flip > .k-polaroid { align-self: flex-end; margin: 0 10mm -18mm 0; rotate: 3deg; }
+.tpl-kraft .k-entry > .k-polaroid figcaption { height: 15mm; font-size: 17pt; }
 
 /* Cover */
 .tpl-kraft.sheet--cover { padding: 0; }

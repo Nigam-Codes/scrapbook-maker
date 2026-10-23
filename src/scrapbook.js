@@ -2,9 +2,9 @@
  * Scrapbook Maker: turns a book of messages into printable pages.
  *
  * A "book" is plain data (see samples/farewell.js). A "template" is a design that
- * knows how to draw a cover and one entry; this file handles everything else:
- * loading the template's fonts, splitting entries across pages, and shrinking
- * text that would overflow its space.
+ * knows how to draw a cover and one person's page; this file handles the rest:
+ * loading the template's fonts, making one page per person, and sizing each
+ * message so it fills its page without overflowing.
  */
 (function () {
   'use strict';
@@ -16,8 +16,6 @@
     letter: { id: 'letter', label: 'US Letter', w: 215.9, h: 279.4, css: 'letter' },
   };
 
-  // How far ahead the packer may look for an entry that fills a gap on a page.
-  const LOOKAHEAD = 4;
   // Text is never shrunk below this fraction of its designed size.
   const MIN_FIT = 0.62;
 
@@ -125,10 +123,6 @@
 
   /* ---------- layout ---------- */
 
-  function overflows(el) {
-    return el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1;
-  }
-
   // Size a one-line headline to fill its parent's width. Fonts with optical
   // sizing change shape with size, so this converges over a few passes.
   function fitLine(el) {
@@ -150,82 +144,47 @@
     }
   }
 
-  // Shrink message text step by step until it fits its box.
+  // Find the largest text size that fits its box. data-fit="1.4" lets short
+  // messages grow up to 1.4× the designed size; long ones shrink down to MIN_FIT.
+  // Only height counts: text wraps sideways, and tilted photos inside the box
+  // poke out a little without being a real overflow.
+  function fitBox(el) {
+    const max = parseFloat(el.dataset.fit) || 1;
+    const set = (f) => el.style.setProperty('--fit', f.toFixed(3));
+    const tooTall = () => el.scrollHeight > el.clientHeight + 1;
+    set(max);
+    if (!tooTall()) return;
+    let lo = MIN_FIT;
+    let hi = max;
+    set(lo);
+    if (tooTall()) return;
+    for (let k = 0; k < 9; k++) {
+      const mid = (lo + hi) / 2;
+      set(mid);
+      if (tooTall()) hi = mid;
+      else lo = mid;
+    }
+    set(lo);
+  }
+
   function fit(sheet) {
     sheet.querySelectorAll('[data-fit-line]').forEach(fitLine);
-    sheet.querySelectorAll('[data-fit]').forEach((el) => {
-      let f = 1;
-      el.style.removeProperty('--fit');
-      while (overflows(el) && f > MIN_FIT) {
-        f = +(f - 0.04).toFixed(2);
-        el.style.setProperty('--fit', f);
-      }
-    });
+    sheet.querySelectorAll('[data-fit]').forEach(fitBox);
   }
 
   function shell(tpl, ctx, n) {
     const head = tpl.pageHead ? tpl.pageHead(ctx, n) : `<span class="page-title">${esc(ctx.book.title)}</span>`;
     const folio = tpl.folio ? tpl.folio(n, ctx) : String(n);
-    return `<header class="page-head">${head}</header><div class="entries"></div><footer class="folio">${folio}</footer>`;
-  }
-
-  // Fixed-grid designs: every entry has a weight (cells it occupies) and each
-  // page has a capacity. Entries keep their order, except that a later one may
-  // move up a little to fill a gap. Spare cells on the last page become blank
-  // notes for anyone who wants to add one by hand.
-  function packUnits(tpl, entries, ctx, make, blanks) {
-    const cap = tpl.layout.capacity;
-    const queue = entries.map((e, i) => ({ e, i, w: Math.min(cap, tpl.weight(e)) }));
-    let n = 0;
-    while (queue.length) {
-      let room = cap;
-      const page = [];
-      for (let k = 0; k < queue.length && k < LOOKAHEAD && room > 0;) {
-        if (queue[k].w <= room) {
-          const item = queue.splice(k, 1)[0];
-          room -= item.w;
-          page.push(item);
-        } else {
-          k++;
-        }
-      }
-      const sheet = make('page', shell(tpl, ctx, ++n));
-      let html = page.map((it) => tpl.entry(it.e, { i: it.i, w: it.w }, ctx)).join('');
-      if (!queue.length && blanks && tpl.blank) {
-        for (let k = 0; k < room; k++) html += tpl.blank({ i: ctx.count + k }, ctx);
-      }
-      sheet.querySelector('.entries').innerHTML = html;
-    }
-  }
-
-  // Free-flowing designs: entries are poured in and measured; one that does not
-  // fit starts the next page.
-  function packFlow(tpl, entries, ctx, make) {
-    let n = 0;
-    let box = null;
-    const newPage = () => { box = make('page', shell(tpl, ctx, ++n)).querySelector('.entries'); };
-    const tmp = document.createElement('div');
-    entries.forEach((e, i) => {
-      if (!box) newPage();
-      tmp.innerHTML = tpl.entry(e, { i, w: 1 }, ctx);
-      const el = tmp.firstElementChild;
-      box.append(el);
-      const past = el.offsetTop + el.offsetHeight > box.clientHeight + 1;
-      if (past && box.children.length > 1) {
-        el.remove();
-        newPage();
-        box.append(el);
-      }
-    });
+    return `<header class="page-head">${head}</header><div class="page-body"></div><footer class="folio">${folio}</footer>`;
   }
 
   /**
-   * Render a book with a template.
+   * Render a book with a template: a cover, then one page per person.
    * opts.paper      'a4' | 'letter'
    * opts.place      (sheet, info) => void — attaches each sheet to the page (it must
    *                 be in the document so it can be measured). Defaults to opts.host.
+   * opts.cover      draw the cover page (default true)
    * opts.coverOnly  only draw the cover
-   * opts.blanks     fill spare space on the last page with blank notes (default true)
    */
   async function render(book, id, opts = {}) {
     const tpl = templates.get(id);
@@ -235,13 +194,13 @@
 
     const place = opts.place || ((s) => (opts.host || document.body).append(s));
     const sheets = [];
-    const make = (kind, html) => {
+    const make = (kind, html, entry) => {
       const s = document.createElement('section');
       s.className = `sheet sheet--${kind} tpl-${tpl.id}`;
       s.style.setProperty('--page-w', paper.w + 'mm');
       s.style.setProperty('--page-h', paper.h + 'mm');
       s.innerHTML = html;
-      place(s, { kind, index: sheets.length, paper });
+      place(s, { kind, index: sheets.length, paper, entry });
       sheets.push(s);
       return s;
     };
@@ -249,10 +208,12 @@
     const entries = (book.entries || []).filter((e) => e && String(e.message ?? '').trim());
     const ctx = { book, count: entries.length, paper, u: util };
 
-    make('cover', tpl.cover(ctx));
+    if (opts.cover !== false || opts.coverOnly) make('cover', tpl.cover(ctx));
     if (!opts.coverOnly) {
-      if (tpl.layout.mode === 'flow') packFlow(tpl, entries, ctx, make);
-      else packUnits(tpl, entries, ctx, make, opts.blanks !== false);
+      entries.forEach((e, i) => {
+        const sheet = make('page', shell(tpl, ctx, i + 1), e);
+        sheet.querySelector('.page-body').innerHTML = tpl.entry(e, { i, n: i + 1 }, ctx);
+      });
     }
     sheets.forEach(fit);
     return sheets;
