@@ -1,12 +1,13 @@
 /*
  * Sample book: farewell messages for a colleague moving abroad.
  * Every field except `entries` is optional. Each entry needs `name` and `message`;
- * `photo` (any image URL or path), `caption` and `style` are optional. `style` makes
- * that person's page look like a message they sent (imessage, whatsapp, snapchat,
- * messenger, slack, gmail, outlook, canvas) or use another paper design. Without
- * it, the page uses the book's design. `group` puts a person into one of the
- * `groups`: everyone in a group shares a group chat page in that group's look
- * (whatsapp, discord or hike), each message under its sender's name.
+ * `photo` (any image URL or path), `caption`, `style` and `group` are optional.
+ * `style` makes that person's page look like a message they sent (imessage,
+ * whatsapp, snapchat, messenger, slack, discord, hike, gmail, outlook, canvas)
+ * or use another paper design; without it, the page uses the book's design.
+ * `group` puts a person into one of the `groups`: everyone in a group shares a
+ * group chat page in that group's look (whatsapp, discord or hike), each
+ * message under its sender's name.
  * The photos are placeholder illustrations.
  */
 window.SAMPLE_BOOK = {
