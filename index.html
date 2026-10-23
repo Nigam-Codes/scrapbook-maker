@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scrapbook Maker</title>
+  <link rel="stylesheet" href="src/scrapbook.css">
+  <link rel="stylesheet" href="templates/kraft.css">
+  <link rel="stylesheet" href="templates/airmail.css">
+  <link rel="stylesheet" href="templates/keepsake.css">
+  <link rel="stylesheet" href="templates/corkboard.css">
+  <link rel="stylesheet" href="templates/riso.css">
+  <link rel="stylesheet" href="templates/notebook.css">
+  <style id="page-size">@page { size: A4; margin: 0; }</style>
+  <style>
+    :root {
+      --bg: #e9ebe7;
+      --bar: #ffffff;
+      --fg: #1f2421;
+      --muted: #5d665f;
+      --line: #cfd4cd;
+      --accent: #2c5a4b;
+      color-scheme: light;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 14px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+    .bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px 20px;
+      padding: 12px 20px;
+      background: var(--bar);
+      border-bottom: 1px solid var(--line);
+    }
+    .bar h1 { margin: 0 8px 0 0; font-size: 16px; }
+    .bar label { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+    .bar select, .bar button, .bar .file {
+      font: inherit;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--fg);
+    }
+    .bar .file { cursor: pointer; }
+    .bar .file input { display: none; }
+    .bar button.print { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+    .bar .hint { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12.5px; }
+    .bar .status { color: #a3341f; }
+    #pages {
+      display: grid;
+      justify-items: center;
+      gap: 28px;
+      padding: 28px 16px 60px;
+    }
+    #pages .sheet-frame {
+      max-width: var(--max-w, 210mm);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    }
+    @media print {
+      body { background: none; }
+      .bar { display: none; }
+      #pages { display: block; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <h1>Scrapbook Maker</h1>
+    <label>Design <select id="template"></select></label>
+    <label>Paper
+      <select id="paper">
+        <option value="a4">A4</option>
+        <option value="letter">US Letter</option>
+      </select>
+    </label>
+    <label class="file">Load messages (.json)<input id="file" type="file" accept=".json,application/json"></label>
+    <button class="print" id="print" type="button">Print / Save as PDF</button>
+    <p class="hint">In the print dialog, set margins to <b>None</b> and turn on <b>Background graphics</b>. <span class="status" id="status"></span></p>
+  </header>
+  <main id="pages"></main>
+
+  <script src="src/scrapbook.js"></script>
+  <script src="templates/kraft.js"></script>
+  <script src="templates/airmail.js"></script>
+  <script src="templates/keepsake.js"></script>
+  <script src="templates/corkboard.js"></script>
+  <script src="templates/riso.js"></script>
+  <script src="templates/notebook.js"></script>
+  <script src="samples/farewell.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const pages = $('pages');
+    let book = window.SAMPLE_BOOK;
+    let run = 0;
+
+    for (const t of Scrapbook.templates) $('template').add(new Option(t.name, t.id));
+    const fromHash = location.hash.slice(1);
+    if (Scrapbook.templates.some((t) => t.id === fromHash)) $('template').value = fromHash;
+
+    async function draw() {
+      const id = $('template').value;
+      const paper = Scrapbook.PAPER[$('paper').value];
+      const mine = ++run;
+      $('page-size').textContent = `@page { size: ${paper.css}; margin: 0; }`;
+      pages.style.setProperty('--max-w', paper.w + 'mm');
+      pages.replaceChildren();
+      await Scrapbook.render(book, id, {
+        paper: paper.id,
+        place: (sheet) => {
+          if (mine !== run) return;
+          const f = Scrapbook.frame(paper);
+          f.append(sheet);
+          pages.append(f);
+          Scrapbook.scaleFrames(f.parentNode);
+        },
+      });
+      Scrapbook.scaleFrames(pages);
+      history.replaceState(null, '', '#' + id);
+    }
+
+    $('template').addEventListener('change', draw);
+    $('paper').addEventListener('change', draw);
+    $('print').addEventListener('click', () => window.print());
+    $('file').addEventListener('change', async (ev) => {
+      const file = ev.target.files[0];
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        if (!Array.isArray(data.entries)) throw new Error('The file needs an "entries" list.');
+        book = data;
+        $('status').textContent = '';
+        draw();
+      } catch (err) {
+        $('status').textContent = `Couldn't read ${file.name}: ${err.message}`;
+      }
+    });
+    new ResizeObserver(() => Scrapbook.scaleFrames(pages)).observe(pages);
+    draw();
+  </script>
+</body>
+</html>
