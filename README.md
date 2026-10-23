@@ -33,15 +33,20 @@ All designs print on A4 or US Letter.
 
 ## Message looks
 
-Any person's page can look like a message they sent instead of the book's design. Choose **Looks like** on their card, or use **Make every page look like** to set everyone at once. The cover always uses the book's design.
+Any person's page can look like a message they sent instead of the book's design. Choose **Looks like** on their card, or use **Make every page look like** to set everyone at once. A person's page can also use any of the six paper designs above. The cover always uses the book's design.
+
+To mix things up, press **Shuffle looks** for a random mix of every look, or choose **Random message apps** or **Random paper designs** from **Make every page look like**. Looks are dealt like cards: each one is used before any repeats, and the same look never lands on two pages in a row. Shuffle again until you like it, then change any single page by hand.
 
 | Look | Their page shows |
 | --- | --- |
 | **iMessage** | A phone screen with their message in grey bubbles, their initials and name at the top. |
 | **WhatsApp** | A phone screen with white chat bubbles on the beige wallpaper, under the green header with their name. |
+| **Snapchat** | A phone chat screen with their name in blue capitals above their messages, each marked with a blue line. |
+| **Messenger** | A phone chat screen with grey bubbles beside their small avatar, and blue icons. |
 | **Slack** | A direct message in a desktop chat window: their avatar, name and time above the message. |
 | **Gmail** | An email open in the inbox: the book's title as the subject, their name and letter avatar, "to me". |
 | **Outlook** | An email in the reading pane: subject, their initials, "To:" the recipient. |
+| **Canvas Inbox** | A message in the Canvas course inbox: subject, their initials and name "to" the recipient, with a Reply button. |
 
 Every look shows the message arriving on the recipient's screen, on the book's date, with each person at a different time of day. Photos appear the way that app shows them, with the caption as a message or label. The looks are drawn from each app's general layout, colours and type; no logos are used, and the app names belong to their owners.
 
@@ -66,7 +71,7 @@ Every look shows the message arriving on the recipient's screen, on the book's d
 }
 ```
 
-Only `entries` is required, and each entry needs `name` and `message`. `style` is one of `imessage`, `whatsapp`, `slack`, `gmail` or `outlook`; leave it out to use the book's design. A blank line in a message starts a new paragraph. Photos added in the editor are stored inside the file; a photo can also be a path relative to `index.html` or a full URL.
+Only `entries` is required, and each entry needs `name` and `message`. `style` is a message look (`imessage`, `whatsapp`, `snapchat`, `messenger`, `slack`, `gmail`, `outlook`, `canvas`) or a paper design (`kraft`, `airmail`, `keepsake`, `corkboard`, `riso`, `notebook`); leave it out to use the book's design. A blank line in a message starts a new paragraph. Photos added in the editor are stored inside the file; a photo can also be a path relative to `index.html` or a full URL.
 
 ## How it's built
 

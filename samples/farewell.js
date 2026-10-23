@@ -2,8 +2,9 @@
  * Sample book: farewell messages for a colleague moving abroad.
  * Every field except `entries` is optional. Each entry needs `name` and `message`;
  * `photo` (any image URL or path), `caption` and `style` are optional. `style` makes
- * that person's page look like a message they sent: imessage, whatsapp, slack,
- * gmail or outlook. Without it, the page uses the book's design.
+ * that person's page look like a message they sent (imessage, whatsapp, snapchat,
+ * messenger, slack, gmail, outlook, canvas) or use another paper design. Without
+ * it, the page uses the book's design.
  * The photos are placeholder illustrations.
  */
 window.SAMPLE_BOOK = {

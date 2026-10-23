@@ -17,8 +17,13 @@
     title: '', recipient: '', occasion: '', from: '', date: '', place: '', coverPhoto: '', coverCaption: '', entries: [],
   });
   const blankPerson = () => ({ id: newId(), name: '', message: '', photo: '', caption: '', style: '' });
-  const STYLES = Scrapbook.messageStyles;
-  const styleName = (id) => (STYLES.find((t) => t.id === id) || {}).name || '';
+  // A person's page can use any paper design or message look.
+  const DESIGNS = Scrapbook.templates;
+  const MESSAGES = Scrapbook.messageStyles;
+  const LOOKS = [...DESIGNS, ...MESSAGES];
+  const styleName = (id) => (LOOKS.find((t) => t.id === id) || {}).name || '';
+  const esc = Scrapbook.util.esc;
+  const optionList = (list) => list.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
 
   // Accept anything shaped roughly like a book; ids are internal and reissued.
   function normalise(data) {
@@ -154,10 +159,11 @@
     return '';
   }
 
-  // "Book design" first, then each message look (sent as a text, chat or email).
+  // "Book design" first, then each message look, then the other paper designs.
   const lookOptions = () =>
-    `<option value="">Book design (${Scrapbook.util.esc($('template').selectedOptions[0]?.text || '')})</option>` +
-    STYLES.map((t) => `<option value="${t.id}">${Scrapbook.util.esc(t.name)}</option>`).join('');
+    `<option value="">Book design (${esc($('template').selectedOptions[0]?.text || '')})</option>` +
+    `<optgroup label="Messages">${optionList(MESSAGES)}</optgroup>` +
+    `<optgroup label="Paper designs">${optionList(DESIGNS)}</optgroup>`;
 
   function personCard(p, i, total) {
     const li = document.createElement('li');
@@ -311,13 +317,50 @@
     });
   }
 
-  // Set every person's look at once.
-  for (const t of STYLES) $('all-style').add(new Option(t.name, t.id));
-  $('all-style').add(new Option('Book design', 'book'), 1);
+  // Set every person's look at once, or shuffle them.
+  $('all-style').insertAdjacentHTML('beforeend', `
+    <option value="book">Book design</option>
+    <optgroup label="Shuffle">
+      <option value="random-all">Random mix of everything</option>
+      <option value="random-messages">Random message apps</option>
+      <option value="random-designs">Random paper designs</option>
+    </optgroup>
+    <optgroup label="Messages">${optionList(MESSAGES)}</optgroup>
+    <optgroup label="Paper designs">${optionList(DESIGNS)}</optgroup>`);
+
+  const POOLS = { 'random-all': LOOKS, 'random-messages': MESSAGES, 'random-designs': DESIGNS };
+
+  // Deal looks like cards: every look is used once before any repeats, and
+  // the same look never lands on two pages in a row.
+  function shuffleLooks(pool) {
+    const ids = pool.map((t) => t.id);
+    let deck = [];
+    let previous = '';
+    for (const p of book.entries) {
+      if (!deck.length) {
+        deck = [...ids];
+        for (let k = deck.length - 1; k > 0; k--) {
+          const j = Math.floor(Math.random() * (k + 1));
+          [deck[k], deck[j]] = [deck[j], deck[k]];
+        }
+        if (deck.length > 1 && deck[0] === previous) deck.push(deck.shift());
+      }
+      p.style = deck.shift();
+      previous = p.style;
+    }
+  }
+
+  $('shuffle').addEventListener('click', () => {
+    shuffleLooks(LOOKS);
+    renderList();
+    changed();
+  });
+
   $('all-style').addEventListener('change', () => {
     const v = $('all-style').value;
     if (!v) return;
-    for (const p of book.entries) p.style = v === 'book' ? '' : v;
+    if (POOLS[v]) shuffleLooks(POOLS[v]);
+    else for (const p of book.entries) p.style = v === 'book' ? '' : v;
     $('all-style').value = '';
     renderList();
     changed();

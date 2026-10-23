@@ -1,9 +1,9 @@
 /*
  * Message looks: a person's page drawn as if their message just arrived on
- * the recipient's screen, as a chat (iMessage, WhatsApp, Slack) or an email
- * (Gmail, Outlook). They are chosen per person in the editor and replace the
- * book's design for that page only. Recreated from layout, colour and type;
- * no logos are used.
+ * the recipient's screen, as a chat (iMessage, WhatsApp, Snapchat, Messenger,
+ * Slack) or an inbox message (Gmail, Outlook, Canvas Inbox). They are chosen
+ * per person in the editor and replace the book's design for that page only.
+ * Recreated from layout, colour and type; no logos are used.
  */
 (function () {
   /* ---------- shared bits ---------- */
@@ -71,6 +71,16 @@
     search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
     chevron: 'M9 6l6 6-6 6',
     caret: 'M7 10l5 5 5-5',
+    image: 'M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15 9h.01',
+    thumb: 'M7 11v9H4v-9zM7 11l4-7a2 2 0 0 1 3.2 2.1L13 10h6a2 2 0 0 1 2 2.3l-1.4 6A2 2 0 0 1 17.6 20H7',
+    plusCircle: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v8M8 12h8',
+    user: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21a8 8 0 0 1 16 0',
+    dashboard: 'M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z',
+    book: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11',
+    calendar: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5',
+    inbox: 'M4 13l2-8h12l2 8v6H4zM4 13h5l1 2h4l1-2h5',
+    help: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17v.01',
+    compose: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
   };
   const icon = (name, cls = '') =>
     `<svg class="mx-icon ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[name]}"/></svg>`;
@@ -291,6 +301,144 @@
             <div class="ol-body entry-message" data-fit="2">
               ${u.paragraphs(e.message)}
               ${e.photo ? `<figure class="mx-img"><img src="${u.esc(e.photo)}" alt="${photoAlt(e, u)}">${e.caption ? `<figcaption>${u.esc(e.caption)}</figcaption>` : ''}</figure>` : ''}
+            </div>
+          </div>
+        </div>
+      </article>`;
+    },
+  });
+  /* ---------- Snapchat ---------- */
+
+  Scrapbook.register({
+    ...common,
+    id: 'snapchat',
+    name: 'Snapchat',
+    description: 'A phone chat screen: their name in blue capitals above their messages, each marked with a blue line.',
+    fonts: ['Nunito Sans:wght@400;600;800'],
+    fontFaces: ['400 16px "Nunito Sans"', '600 16px "Nunito Sans"', '800 16px "Nunito Sans"'],
+
+    entry(e, { i }, { book, u }) {
+      const t = clock(i);
+      const d = day(book, u);
+      return `<article class="entry mx-entry">
+        <div class="ph"><div class="ph-screen">
+          ${statusBar(bare(t), 'island')}
+          <div class="sc-head">
+            ${icon('back', 'sc-back')}
+            <span class="sc-avatar" style="background:${colour(e.name)}">${u.esc(initials(e.name, 1))}</span>
+            <span class="sc-name">${u.esc(e.name)}</span>
+            <span class="sc-actions">${icon('phone')}${icon('video')}</span>
+          </div>
+          <div class="sc-thread entry-message" data-fit="2.3">
+            ${d ? `<div class="sc-day">${d.weekday}, ${d.month} ${d.d}</div>` : ''}
+            <div class="sc-who">${u.esc(e.name)}</div>
+            <div class="sc-group">
+              ${e.photo ? `<div class="sc-photo"><img src="${u.esc(e.photo)}" alt="${photoAlt(e, u)}"></div>` : ''}
+              ${e.photo && e.caption ? `<div class="sc-text">${u.esc(e.caption)}</div>` : ''}
+              ${u.blocks(e.message).map((b) => `<div class="sc-text">${b}</div>`).join('')}
+            </div>
+          </div>
+          <div class="sc-input">
+            <span class="sc-cam">${icon('camera')}</span>
+            <span class="sc-field">Send a chat</span>
+            ${icon('mic')}${icon('smile')}
+          </div>
+          <span class="ph-home"></span>
+        </div></div>
+      </article>`;
+    },
+  });
+
+  /* ---------- Messenger ---------- */
+
+  Scrapbook.register({
+    ...common,
+    id: 'messenger',
+    name: 'Messenger',
+    description: 'A phone chat screen with their message in grey bubbles beside their small avatar, and blue icons.',
+    fonts: ['Inter:wght@400;500;600'],
+    fontFaces: ['400 16px Inter', '600 16px Inter'],
+
+    entry(e, { i }, { book, u }) {
+      const t = clock(i);
+      const d = day(book, u);
+      const when = d ? `${d.weekday.slice(0, 3).toUpperCase()} ${h12(t)}` : h12(t);
+      const avatar = (cls) => `<span class="ms-avatar ${cls}" style="background:${colour(e.name)}">${u.esc(initials(e.name, 1))}</span>`;
+      const bubbles = [
+        ...(e.photo ? [`<div class="ms-bubble ms-photo"><img src="${u.esc(e.photo)}" alt="${photoAlt(e, u)}"></div>`] : []),
+        ...(e.photo && e.caption ? [`<div class="ms-bubble">${u.esc(e.caption)}</div>`] : []),
+        ...u.blocks(e.message).map((b) => `<div class="ms-bubble">${b}</div>`),
+      ];
+      return `<article class="entry mx-entry">
+        <div class="ph"><div class="ph-screen">
+          ${statusBar(bare(t), 'island')}
+          <div class="ms-head">
+            ${icon('back', 'ms-back')}
+            ${avatar('ms-avatar--head')}
+            <span class="ms-name">${u.esc(e.name)}</span>
+            <span class="ms-actions">${icon('phone')}${icon('video')}</span>
+          </div>
+          <div class="ms-thread entry-message" data-fit="2.3">
+            <div class="ms-stamp">${u.esc(when)}</div>
+            <div class="ms-group">
+              <div class="ms-bubbles">${bubbles.join('')}</div>
+              ${avatar('')}
+            </div>
+          </div>
+          <div class="ms-input">
+            ${icon('plusCircle')}${icon('camera')}${icon('image')}${icon('mic')}
+            <span class="ms-field">Aa${icon('smile')}</span>
+            ${icon('thumb')}
+          </div>
+          <span class="ph-home"></span>
+        </div></div>
+      </article>`;
+    },
+  });
+
+  /* ---------- Canvas Inbox ---------- */
+
+  Scrapbook.register({
+    ...common,
+    id: 'canvas',
+    name: 'Canvas Inbox',
+    description: 'A message in the Canvas course inbox: subject, their initials and name "to" the recipient, then the message.',
+    fonts: ['Lato:wght@400;700;900'],
+    fontFaces: ['400 16px Lato', '700 16px Lato', '900 16px Lato'],
+
+    entry(e, { i }, { book, u }) {
+      const t = clock(i);
+      const d = day(book, u);
+      const ampm = h12(t).replace(' AM', 'am').replace(' PM', 'pm');
+      const when = d ? `${d.month.slice(0, 3)} ${d.d}, ${d.y} at ${ampm}` : ampm;
+      const nav = [['user', 'Account'], ['dashboard', 'Dashboard'], ['book', 'Courses'], ['calendar', 'Calendar'], ['inbox', 'Inbox'], ['help', 'Help']];
+      return `<article class="entry mx-entry">
+        <div class="mx-win cv-win">
+          <nav class="cv-rail">
+            ${nav.map(([ic, label]) => `<span class="cv-nav${label === 'Inbox' ? ' is-on' : ''}">${icon(ic)}<small>${label}</small></span>`).join('')}
+          </nav>
+          <div class="cv-main">
+            <div class="cv-bar">
+              <b>Inbox</b>
+              <span class="cv-tools">${icon('compose')}${icon('reply')}${icon('replyAll')}${icon('archive')}${icon('trash')}</span>
+            </div>
+            <div class="cv-read">
+              <h1 class="cv-subject">${u.esc(book.title || '(No subject)')}</h1>
+              <div class="cv-from">
+                <span class="cv-avatar">${u.esc(initials(e.name, 2))}</span>
+                <div class="cv-who">
+                  <p><b>${u.esc(e.name)}</b></p>
+                  <p class="cv-to">to ${u.esc(book.recipient || 'you')}</p>
+                </div>
+                <div class="cv-side">
+                  <span class="cv-when">${u.esc(when)}</span>
+                  <span class="cv-reply">${icon('reply')}Reply</span>
+                </div>
+              </div>
+              <div class="cv-body entry-message" data-fit="2">
+                ${u.paragraphs(e.message)}
+                ${e.photo ? `<figure class="mx-img"><img src="${u.esc(e.photo)}" alt="${photoAlt(e, u)}">${e.caption ? `<figcaption>${icon('clip')}${u.esc(e.caption)}</figcaption>` : ''}</figure>` : ''}
+              </div>
             </div>
           </div>
         </div>

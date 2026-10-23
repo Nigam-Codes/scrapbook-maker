@@ -180,8 +180,8 @@
 
   /**
    * Render a book with a design: a cover, then one page per person. A person
-   * whose entry has a `style` (a message look such as 'imessage') gets that
-   * look for their page instead of the book's design.
+   * whose entry has a `style` (another design, or a message look such as
+   * 'imessage') gets that look for their page instead of the book's design.
    * opts.paper      'a4' | 'letter'
    * opts.place      (sheet, info) => void — attaches each sheet to the page (it must
    *                 be in the document so it can be measured). Defaults to opts.host.
@@ -194,10 +194,7 @@
     const paper = PAPER[opts.paper] || PAPER.a4;
 
     const entries = (book.entries || []).filter((e) => e && String(e.message ?? '').trim());
-    const pageTpl = (e) => {
-      const t = e.style && templates.get(e.style);
-      return t && t.kind === 'message' ? t : tpl;
-    };
+    const pageTpl = (e) => (e.style && templates.get(e.style)) || tpl;
     const used = new Set([tpl, ...(opts.coverOnly ? [] : entries.map(pageTpl))]);
     await Promise.all([...used].map(loadFonts));
 
@@ -205,7 +202,7 @@
     const sheets = [];
     const make = (t, kind, html, entry) => {
       const s = document.createElement('section');
-      s.className = `sheet sheet--${kind} tpl-${t.id}`;
+      s.className = `sheet sheet--${kind} tpl-${t.id}${t.kind === 'message' ? ' sheet--msg' : ''}`;
       s.style.setProperty('--page-w', paper.w + 'mm');
       s.style.setProperty('--page-h', paper.h + 'mm');
       s.innerHTML = html;
