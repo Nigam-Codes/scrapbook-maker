@@ -1,0 +1,86 @@
+/* Shared by every template: page size, print behaviour, and a few resets.
+   Each template styles its own content under .tpl-<id>. */
+
+.sheet {
+  --page-w: 210mm;
+  --page-h: 297mm;
+  position: relative;
+  width: var(--page-w);
+  height: var(--page-h);
+  overflow: hidden;
+  box-sizing: border-box;
+  font-size: 11pt;
+  line-height: 1.4;
+  text-align: left;
+  font-kerning: normal;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.sheet *,
+.sheet *::before,
+.sheet *::after {
+  box-sizing: border-box;
+}
+
+.sheet :where(h1, h2, h3, p, figure, blockquote) {
+  margin: 0;
+}
+
+.sheet :where(h1, h2, h3) {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.sheet img {
+  display: block;
+  max-width: none;
+}
+
+.sheet .page-body {
+  position: relative;
+}
+
+.sheet .entry-message {
+  min-height: 0;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+
+.sheet .entry-message p + p {
+  margin-top: 0.55em;
+}
+
+/* On-screen preview: a frame holds one sheet and scales it to its width. */
+.sheet-frame {
+  position: relative;
+  width: 100%;
+}
+
+.sheet-frame > .sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  transform: scale(var(--k, 1));
+}
+
+@media print {
+  .sheet-frame {
+    width: auto !important;
+    aspect-ratio: auto !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    border: 0 !important;
+  }
+
+  .sheet-frame > .sheet {
+    position: relative;
+    transform: none;
+  }
+
+  .sheet {
+    break-after: page;
+    break-inside: avoid;
+  }
+}

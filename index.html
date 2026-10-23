@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scrapbook Maker</title>
+  <link rel="stylesheet" href="src/scrapbook.css">
+  <link rel="stylesheet" href="templates/kraft.css">
+  <link rel="stylesheet" href="templates/airmail.css">
+  <link rel="stylesheet" href="templates/keepsake.css">
+  <link rel="stylesheet" href="templates/corkboard.css">
+  <link rel="stylesheet" href="templates/riso.css">
+  <link rel="stylesheet" href="templates/notebook.css">
+  <link rel="stylesheet" href="templates/messages.css">
+  <link rel="stylesheet" href="src/editor.css">
+  <style id="page-size">@page { size: A4; margin: 0; }</style>
+</head>
+<body>
+  <header class="bar">
+    <h1>Scrapbook Maker</h1>
+    <label>Design <select id="template"></select></label>
+    <label>Paper
+      <select id="paper">
+        <option value="a4">A4</option>
+        <option value="letter">US Letter</option>
+      </select>
+    </label>
+    <label class="check"><input id="cover" type="checkbox" checked> Cover page</label>
+    <span class="spacer"></span>
+    <span class="count" id="count"></span>
+    <button class="primary" id="print" type="button">Print / Save as PDF</button>
+  </header>
+
+  <div class="layout">
+    <aside class="editor" aria-label="Scrapbook contents">
+      <section class="panel">
+        <h2>Cover</h2>
+        <div class="field">
+          <label for="f-title">Title</label>
+          <input id="f-title" data-field="title" placeholder="Bon voyage, Maya">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-recipient">Who it's for</label>
+            <input id="f-recipient" data-field="recipient" placeholder="Maya Okafor">
+          </div>
+          <div class="field">
+            <label for="f-occasion">Occasion</label>
+            <input id="f-occasion" data-field="occasion" placeholder="Farewell">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-from">Signed</label>
+          <input id="f-from" data-field="from" placeholder="With love from everyone at Northwind Studio">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-date">Date</label>
+            <input id="f-date" data-field="date" type="date">
+          </div>
+          <div class="field">
+            <label for="f-place">Place <span class="opt">(Airmail address)</span></label>
+            <input id="f-place" data-field="place" placeholder="Lisbon">
+          </div>
+        </div>
+        <div class="photo" id="cover-photo">
+          <img class="thumb" alt="" hidden>
+          <label class="button small">Add cover photo<input type="file" accept="image/*" data-photo="cover"></label>
+          <button class="small link" type="button" data-act="unphoto-cover" hidden>Remove photo</button>
+          <input class="caption" id="f-coverCaption" data-field="coverCaption" placeholder="Photo caption (optional)" aria-label="Cover photo caption" hidden>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Group chats</h2>
+          <span class="hint">Several people on one page</span>
+        </div>
+        <p class="hint" id="groups-empty">Put a few people together as a group chat: each message arrives on its own, under the sender's name. Make a group here, then choose it on their cards below.</p>
+        <ul class="groups" id="groups"></ul>
+        <button class="add" id="add-group" type="button">+ New group chat</button>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>People</h2>
+          <span class="hint">One page each, in this order</span>
+        </div>
+        <div class="look-all">
+          <label for="all-style">Make every page look like</label>
+          <select id="all-style"><option value="">Choose…</option></select>
+          <button type="button" class="small" id="shuffle" title="Give every person a random look">Shuffle looks</button>
+        </div>
+        <ol class="people" id="people"></ol>
+        <button class="add" id="add" type="button">+ Add a person</button>
+      </section>
+
+      <section class="panel">
+        <h2>Your work</h2>
+        <p class="hint" id="save-status">Everything you type is saved in this browser.</p>
+        <div class="buttons">
+          <button type="button" id="export">Save to file</button>
+          <label class="button">Open file<input id="import" type="file" accept=".json,application/json"></label>
+          <button type="button" id="example">Load example</button>
+          <button type="button" class="danger" id="reset">Start over</button>
+        </div>
+        <p class="hint">Saving to a file keeps a copy you can open on another computer. When printing, set margins to <b>None</b> and turn on <b>Background graphics</b>.</p>
+      </section>
+    </aside>
+
+    <main class="preview" id="preview" aria-label="Preview">
+      <div class="pages" id="pages"></div>
+    </main>
+  </div>
+
+  <script src="src/scrapbook.js"></script>
+  <script src="templates/kraft.js"></script>
+  <script src="templates/airmail.js"></script>
+  <script src="templates/keepsake.js"></script>
+  <script src="templates/corkboard.js"></script>
+  <script src="templates/riso.js"></script>
+  <script src="templates/notebook.js"></script>
+  <script src="templates/messages.js"></script>
+  <script src="samples/farewell.js"></script>
+  <script src="src/editor.js"></script>
+</body>
+</html>

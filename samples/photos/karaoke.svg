@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <defs>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe9a8" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffe9a8" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="#2a1f4a"/>
+  <rect y="430" width="600" height="170" fill="#3b2d63"/>
+  <path d="M0 430 H600" stroke="#5e4a96" stroke-width="6"/>
+  <path d="M270 0 H330 L470 470 H130 Z" fill="url(#beam)"/>
+  <ellipse cx="300" cy="470" rx="170" ry="26" fill="#ffe9a8" opacity="0.35"/>
+  <g fill="#e85d9a">
+    <circle cx="90" cy="120" r="10"/><circle cx="520" cy="90" r="8"/><circle cx="480" cy="300" r="6"/>
+  </g>
+  <g fill="#7fd1c4">
+    <circle cx="140" cy="260" r="7"/><circle cx="545" cy="210" r="10"/><circle cx="60" cy="350" r="6"/>
+  </g>
+  <g stroke="#f4f0ff" stroke-width="8" fill="none" stroke-linecap="round">
+    <path d="M300 300 V460"/>
+    <path d="M250 470 H350"/>
+  </g>
+  <rect x="284" y="230" width="32" height="80" rx="10" fill="#d8d3ea"/>
+  <circle cx="300" cy="222" r="30" fill="#9a93b8"/>
+  <g fill="#f4f0ff">
+    <circle cx="140" cy="170" r="14"/><rect x="150" y="110" width="6" height="62"/>
+    <circle cx="455" cy="160" r="12"/><circle cx="495" cy="150" r="12"/>
+    <rect x="463" y="104" width="6" height="58"/><rect x="503" y="94" width="6" height="58"/>
+    <rect x="463" y="94" width="46" height="10"/>
+  </g>
+</svg>

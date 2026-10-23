@@ -1,0 +1,180 @@
+/* Keepsake: one message per page, like fine stationery */
+.tpl-keepsake {
+  --paper: #faf8f3;
+  --ink: #1f3a32;
+  --soft: #4f6058;
+  --gold: #a68a55;
+  --sprig: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 20'%3E%3Cpath d='M6 10H48M72 10H114' stroke='%23a68a55' stroke-width='.8' fill='none'/%3E%3Cg fill='%23a68a55'%3E%3Ccircle cx='60' cy='10' r='2.1'/%3E%3Cpath d='M55 10q-5-7-13-6q4 6 13 6z'/%3E%3Cpath d='M55 10q-5 7-13 6q4-6 13-6z'/%3E%3Cpath d='M65 10q5-7 13-6q-4 6-13 6z'/%3E%3Cpath d='M65 10q5 7 13 6q-4-6-13-6z'/%3E%3C/g%3E%3C/svg%3E");
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+  padding: 30mm 30mm 22mm;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+/* Double gilt rule */
+.tpl-keepsake::before,
+.tpl-keepsake::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+.tpl-keepsake::before { inset: 9mm; border: 0.4mm solid var(--gold); }
+.tpl-keepsake::after { inset: 10.8mm; border: 0.15mm solid var(--gold); }
+
+.tpl-keepsake .page-head {
+  position: absolute;
+  top: 5.5mm;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 1;
+}
+
+.tpl-keepsake .ks-mono {
+  display: grid;
+  place-items: center;
+  width: 9mm;
+  height: 9mm;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 0.3mm solid var(--gold);
+  font: italic 400 13pt/1 'Cormorant Garamond', serif;
+  color: var(--ink);
+  box-shadow: 0 0 0 1.4mm var(--paper);
+}
+
+.tpl-keepsake .folio {
+  font: italic 400 13pt/1 'Cormorant Garamond', serif;
+  color: var(--gold);
+  margin-top: 4mm;
+}
+
+.tpl-keepsake .page-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* One message per page, centred like a printed card */
+.tpl-keepsake .ks-entry {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8mm;
+}
+
+.tpl-keepsake .entry-message {
+  flex: 0 1 auto;
+  max-width: 132mm;
+  font-size: calc(21pt * var(--fit, 1));
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.42;
+  text-wrap: pretty;
+}
+.tpl-keepsake .entry-message p:first-child::before { content: '\201C'; }
+.tpl-keepsake .entry-message p:last-child::after { content: '\201D'; }
+
+.tpl-keepsake .entry-name {
+  display: flex;
+  align-items: center;
+  gap: 5mm;
+  font: 600 14pt/1 'Cormorant SC', 'Cormorant Garamond', serif;
+  letter-spacing: 0.24em;
+  color: var(--ink);
+}
+.tpl-keepsake .entry-name::before,
+.tpl-keepsake .entry-name::after {
+  content: '';
+  width: 14mm;
+  height: 0.25mm;
+  background: var(--gold);
+}
+
+/* Arched photo */
+.tpl-keepsake .ks-photo {
+  flex: 0 1 auto;
+  min-height: 0;
+  width: 78mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3mm;
+}
+.tpl-keepsake .ks-photo img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 39mm 39mm 0 0;
+  outline: 0.3mm solid var(--gold);
+  outline-offset: 2mm;
+}
+.tpl-keepsake .ks-photo figcaption {
+  margin-top: 2mm;
+  font: italic 400 13pt/1.2 'Cormorant Garamond', serif;
+  color: var(--soft);
+}
+
+/* Cover */
+.tpl-keepsake .ks-cover {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7mm;
+}
+
+.tpl-keepsake .ks-occasion,
+.tpl-keepsake .ks-count {
+  font: 500 11pt/1 'Cormorant SC', 'Cormorant Garamond', serif;
+  letter-spacing: 0.4em;
+  color: var(--gold);
+  padding-left: 0.4em;
+}
+
+.tpl-keepsake .cover-title {
+  font: italic 300 54pt/1 'Cormorant Garamond', serif;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.tpl-keepsake .ks-cover-photo { width: 76mm; }
+.tpl-keepsake .ks-cover-photo img { border-radius: 38mm 38mm 0 0; }
+
+.tpl-keepsake .ks-mono--big {
+  width: 34mm;
+  height: 34mm;
+  font-size: 44pt;
+  box-shadow: none;
+  outline: 0.15mm solid var(--gold);
+  outline-offset: 1.6mm;
+}
+
+.tpl-keepsake .ks-from {
+  max-width: 110mm;
+  font: 500 14pt/1.35 'Cormorant Garamond', serif;
+  color: var(--soft);
+}
+
+.tpl-keepsake .ks-sprig {
+  width: 40mm;
+  height: 7mm;
+  background: var(--sprig) center / contain no-repeat;
+}
+
+.tpl-keepsake .ks-date {
+  font: 500 12.5pt/1.3 'Cormorant SC', 'Cormorant Garamond', serif;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+.tpl-keepsake .ks-count { margin-top: 4mm; font-size: 9pt; }
